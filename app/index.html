@@ -503,7 +503,7 @@ function render(){
   if(mode==='client'){v.innerHTML=(preview?PVBAR():'')+agendar();return}
   if(!SB){document.body.classList.add('locked');v.innerHTML=semConfig();return}
   if(!SESSION){document.body.classList.add('locked');v.innerHTML=deviceLogin();return}
-  if(!READY&&!HAD_CACHE){document.body.classList.add('locked');v.innerHTML=`<div class="loadbox"><div class="spin"></div><p class="sub">Carregando os dados da barbearia…</p></div>`;return}
+  if(!READY&&!HAD_CACHE){document.body.classList.add('locked');v.innerHTML=LOADERR?`<div class="loadbox"><p class="brand" style="font-size:28px">Não deu para carregar</p><p class="sub">${esc(LOADERR)}</p><div class="btns" style="justify-content:center"><button class="btn pri" data-a="retry-load">Tentar de novo</button><button class="btn" data-a="device-out">Entrar com outro e-mail</button></div></div>`:`<div class="loadbox"><div class="spin"></div><p class="sub">Carregando os dados da barbearia…</p></div>`;return}
   if(!user){v.innerHTML=login();return}
   if(B(user).mustChange){document.body.classList.add('locked');v.innerHTML=setPass();return}
   if(!menu().some(m=>m[0]===view))view='painel';
@@ -794,6 +794,10 @@ const SB=(window.supabase&&CFG.SUPABASE_URL&&/^https:\/\//.test(CFG.SUPABASE_URL
   ?window.supabase.createClient(CFG.SUPABASE_URL,CFG.SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true}}):null;
 const COLS=['appts','clients','tx','products','payouts'];
 const PUBB=['id','name','slug','color','off'];
+let LOADERR='';
+const comTempo=(pr,ms)=>Promise.race([pr,new Promise((_,rj)=>setTimeout(()=>rj(new Error('tempo')),ms))]);
+const msgErro=e=>/tempo|fetch|network|Failed/i.test(String(e&&e.message||e))?'O servidor demorou para responder. Confira a internet e tente de novo.':'O servidor respondeu com erro: '+String(e&&e.message||e).slice(0,140);
+async function carregar(){LOADERR='';render();try{await comTempo(loadAll(),25000);listen()}catch(e){console.warn(e);LOADERR=msgErro(e);setOnline(false)}render()}
 let SESSION=null,READY=false,SNAP={},CFGSNAP='',syncT=null,syncing=false,chan=null,tempPin=null;
 let donoPin=null;try{donoPin=sessionStorage.getItem('maycao-dpin')}catch(e){}
 const setDonoPin=p=>{donoPin=p;try{p?sessionStorage.setItem('maycao-dpin',p):sessionStorage.removeItem('maycao-dpin')}catch(e){}};
@@ -1128,6 +1132,7 @@ document.addEventListener('click',e=>{
     case 'close':closeM();break;
     case 'install':if(instEvt){instEvt.prompt();instEvt=null;render()}break;
     case 'device-out':deviceSignOut();break;
+    case 'retry-load':carregar();break;
     case 'day':{const d=+el.dataset.d;agDate=d===0?TODAY:addDays(agDate,d*(agView==='semana'?7:1));render();break}
     case 'agview':agView=el.dataset.m;render();break;
     case 'pick-login':loginB=id;render();setTimeout(()=>{const p=document.getElementById('pin');p&&p.focus()},0);break;
@@ -1204,8 +1209,7 @@ document.addEventListener('submit',e=>{
       const ok=await SB.rpc('eh_equipe');
       if(!ok.error&&ok.data===false){await SB.auth.signOut();SESSION=null;render();const e2=document.getElementById('derr');if(e2){e2.textContent='Esse e-mail não é da barbearia. Use o login da Barbearia do Maycão.';e2.hidden=false}return}
       SESSION=data.session;render();
-      try{await loadAll();listen()}catch(err){console.warn(err);setOnline(false)}
-      render()});return}
+      await carregar()});return}
   if(e.target.id==='lform'){e.preventDefault();const pin=document.getElementById('pin').value.trim(),le=document.getElementById('lerr'),bt=e.target.querySelector('button[type=submit]');bt.disabled=true;
     SB.rpc('entrar_pin',{p_barber:loginB,p_pin:pin}).then(({data,error})=>{bt.disabled=false;
       if(error||data==='errado'||data==='bloqueado'){le.textContent=error?'Sem internet. Tente de novo.':data==='bloqueado'?'Muitas tentativas erradas. Espere 10 minutos.':'PIN errado. Tente de novo.';le.hidden=false;document.getElementById('pin').value='';return}
@@ -1245,7 +1249,7 @@ route();render();
   await loadOcupados();
   render();
   if(SESSION){const ok=await SB.rpc('eh_equipe').catch(()=>({}));if(ok&&ok.data===false){await SB.auth.signOut();SESSION=null;render();return}
-    try{await loadAll();listen()}catch(e){console.warn(e);setOnline(false)}render()}
+    await carregar()}
 })();
 setInterval(()=>{if(mode==='client'&&SB){loadOcupados().then(()=>{if(W.step<3)rr()})}},60000);
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&SB&&SESSION&&READY){flush().then(()=>loadAll()).then(()=>rr()).catch(()=>{})}});
