@@ -359,7 +359,12 @@ body.client .chead .back{color:var(--accent);font-weight:600;font-size:13.5px;te
 .strip{transition-property:transform;transition-timing-function:cubic-bezier(.15,.7,.2,1)}
 .cell{height:76px;display:grid;place-items:center;color:#f0c977}
 .slotmsg{margin:0;text-align:center;min-height:42px;line-height:1.4}
-@media (prefers-reduced-motion:reduce){.strip{transition-duration:.01s!important}}
+.slotgo{appearance:none;border:0;border-radius:999px;padding:13px 34px;font:800 17px/1 var(--f-display,system-ui);letter-spacing:.08em;color:#1a1408;background:linear-gradient(180deg,#f0c977,#c8932f);box-shadow:0 4px 0 #7a5618,0 8px 22px -6px rgba(212,162,76,.7);cursor:pointer;animation:slotpulse 1.6s ease-in-out infinite}
+.slotgo:active{transform:translateY(3px);box-shadow:0 1px 0 #7a5618}
+.slotgo:disabled{animation:none;opacity:.45;cursor:default}
+.slotm.off .reels{opacity:.45;filter:grayscale(.6)}
+@keyframes slotpulse{50%{transform:scale(1.05)}}
+@media (prefers-reduced-motion:reduce){.strip{transition-duration:.01s!important}.slotgo{animation:none}}
 @media print{.side,.tabbar,.mtop,.fintabs,.phead .btns,.toast,#ov{display:none!important}.app{display:block}main{padding:0}body{background:#fff;color:#000}.panel,.kpi{break-inside:avoid;border-color:#ccc}}
 </style>
 </head>
@@ -1057,17 +1062,26 @@ async function slotRun(dn,el){
   let r=null;
   for(let t=0;t<3&&!r;t++){try{const {data,error}=await SB.rpc('resultado_slot',{p_appt:dn.id});if(!error)r=data}catch(e){}if(!r)await new Promise(ok=>setTimeout(ok,600))}
   if(!r){el.remove();return}
-  if(r.bloqueado){el.innerHTML=`<p class="sub" style="margin:8px 0 0;font-size:13px">🎰 Você já girou o slot esta semana. Próximo giro a partir de ${short(r.proximo)}.</p>`;return}
-  const sb=r.simbolos||[],pool=[...new Set(((S.slot&&S.slot.maquinas)||[]).flatMap(m=>(m.itens||[]).map(i=>i.icone)).concat(sb))];
-  const N=18;
-  el.innerHTML=`<div class="slotm"><p class="slott">${esc(r.maquina||'Slot')}</p><div class="reels">${sb.map((s,i)=>`<div class="reel"><div class="strip" style="transition-duration:${1.4+i*0.55}s">${Array.from({length:N},(_,k)=>`<div class="cell">${icoSvg(k===N-1?s:pool[Math.floor(Math.random()*pool.length)])}</div>`).join('')}</div></div>`).join('')}</div><p class="slotmsg" aria-live="polite"></p></div>`;
-  requestAnimationFrame(()=>requestAnimationFrame(()=>el.querySelectorAll('.strip').forEach(s=>s.style.transform=`translateY(-${(N-1)*76}px)`)));
-  setTimeout(()=>{
-    const m=el.querySelector('.slotmsg');const serv=SV(dn.serviceId);
-    if(r.ganhou){el.querySelector('.slotm').classList.add('win');
-      m.innerHTML=r.tipo==='desconto'?`🎉 <b>Ganhou ${+r.valor}% de desconto!</b><br>Seu ${esc(serv?.name||'serviço')} sai por <b>${brl(+r.price||0)}</b> <s style="opacity:.6">${brl(+r.precoOriginal||0)}</s>`:`🎉 <b>Ganhou: ${esc(r.texto||'brinde')}!</b><br>Retire na barbearia no dia do seu horário.`}
-    else m.innerHTML=`Não foi dessa vez! 😅<br><span class="sub" style="font-size:13px">Você pode girar de novo a partir de ${short(addDays(TODAY,+(S.slot&&S.slot.limiteDias)||7))}.</span>`;
-  },1400+2*550+250);
+  const bloq=!!r.bloqueado,sb=bloq?[]:(r.simbolos||[]);
+  const mq=((S.slot&&S.slot.maquinas)||[]).find(m=>m.nome===r.maquina);
+  const pool=[...new Set(((mq?[mq]:(S.slot&&S.slot.maquinas)||[])).flatMap(m=>(m.itens||[]).map(i=>i.icone)).concat(sb))];
+  const rnd=()=>pool.length?pool[Math.floor(Math.random()*pool.length)]:'estrela';
+  const N=18,idle=[rnd(),rnd(),rnd()];
+  el.innerHTML=`<div class="slotm${bloq?' off':''}"><p class="slott">${esc(r.maquina||'Slot')}</p><div class="reels">${idle.map((s0,i)=>`<div class="reel"><div class="strip" style="transition-duration:${1.4+i*0.55}s">${Array.from({length:N},(_,k)=>`<div class="cell">${icoSvg(k===0?s0:(k===N-1&&!bloq?sb[i]:rnd()))}</div>`).join('')}</div></div>`).join('')}</div>`+
+    (bloq?`<button class="slotgo" type="button" disabled>🎰 GIRAR</button><p class="slotmsg">Você já girou o slot esta semana.<br><span style="font-size:13px;opacity:.75">Próximo giro a partir de ${short(r.proximo)}.</span></p>`
+         :`<button class="slotgo" type="button">🎰 GIRAR</button><p class="slotmsg" aria-live="polite">Toque em <b>girar</b> e boa sorte!</p>`)+`</div>`;
+  if(bloq)return;
+  const go=el.querySelector('.slotgo'),m=el.querySelector('.slotmsg');
+  go.addEventListener('click',ev=>{
+    ev.stopPropagation();if(go.disabled)return;go.disabled=true;go.textContent='Girando...';m.innerHTML='';
+    el.querySelectorAll('.strip').forEach(s=>s.style.transform=`translateY(-${(N-1)*76}px)`);
+    setTimeout(()=>{
+      go.remove();const serv=SV(dn.serviceId);
+      if(r.ganhou){el.querySelector('.slotm').classList.add('win');
+        m.innerHTML=r.tipo==='desconto'?`🎉 <b>Ganhou ${+r.valor}% de desconto!</b><br>Seu ${esc(serv?.name||'serviço')} sai por <b>${brl(+r.price||0)}</b> <s style="opacity:.6">${brl(+r.precoOriginal||0)}</s>`:`🎉 <b>Ganhou: ${esc(r.texto||'brinde')}!</b><br>Retire na barbearia no dia do seu horário.`}
+      else m.innerHTML=`Não foi dessa vez! 😅<br><span style="font-size:13px;opacity:.75">Você pode girar de novo a partir de ${short(addDays(TODAY,+(S.slot&&S.slot.limiteDias)||7))}.</span>`;
+    },1400+2*550+250);
+  });
 }
 
 
