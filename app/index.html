@@ -351,6 +351,16 @@ body.client .chead .back{color:var(--accent);font-weight:600;font-size:13.5px;te
 .loadbox{max-width:420px;margin:12vh auto 0;text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center}
 .spin{width:34px;height:34px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--accent);animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+.slotm{margin:14px auto 4px;padding:16px;border-radius:18px;background:linear-gradient(160deg,#2a2213,#16140f);border:1px solid #6b5426;max-width:340px;display:flex;flex-direction:column;align-items:center;gap:10px;color:#f3eee4}
+.slotm.win{box-shadow:0 0 0 2px #d4a24c,0 0 40px -6px rgba(212,162,76,.8)}
+.slott{margin:0;font-family:var(--f-display);font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#d4a24c;font-size:18px}
+.reels{display:flex;gap:10px}
+.reel{width:76px;height:76px;overflow:hidden;border-radius:12px;background:#0e0d0b;border:2px solid #d4a24c;box-shadow:inset 0 8px 14px rgba(0,0,0,.6),inset 0 -8px 14px rgba(0,0,0,.6)}
+.strip{transition-property:transform;transition-timing-function:cubic-bezier(.15,.7,.2,1)}
+.cell{height:76px;display:grid;place-items:center;color:#f0c977}
+.slotmsg{margin:0;text-align:center;min-height:42px;line-height:1.4}
+@media (prefers-reduced-motion:reduce){.strip{transition-duration:.01s!important}}
+@media print{.side,.tabbar,.mtop,.fintabs,.phead .btns,.toast,#ov{display:none!important}.app{display:block}main{padding:0}body{background:#fff;color:#000}.panel,.kpi{break-inside:avoid;border-color:#ccc}}
 </style>
 </head>
 <body>
@@ -391,6 +401,7 @@ agendar:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width
 clientes:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="8" r="4"/><path d="M2 21c0-4 3-6 7-6s7 2 7 6M16 4a4 4 0 0 1 0 8M22 21c0-3-2-5-4-5.5"/></svg>',
 financeiro:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
 estoque:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg>'};
+IC.mensal='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h4"/><path d="m15 15 1.5 1.5L19 14"/></svg>';
 IC.links='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>';
 IC.links0='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>';
 const PAYS=['Pix','Dinheiro','Débito','Crédito'];
@@ -431,7 +442,8 @@ const CACHE='maycao-cache-v1';
 let S; try{S=JSON.parse(localStorage.getItem(CACHE))}catch(e){S=null}
 const HAD_CACHE=!!(S&&S.barbers);
 if(!HAD_CACHE)S={barbers:[{id:'b1',name:'Maycão',slug:'maycao',color:'#A87622',comm:0}],services:[],info:{...DEF_INFO},hours:JSON.parse(JSON.stringify(DEF_HRS))};
-['clients','appts','products','tx','payouts'].forEach(k=>{if(!Array.isArray(S[k]))S[k]=[]});
+['clients','appts','products','tx','payouts','subs'].forEach(k=>{if(!Array.isArray(S[k]))S[k]=[]});
+if(!Array.isArray(S.plans))S.plans=[];
 if(!S.info)S.info={...DEF_INFO};
 if(!S.hours)S.hours=JSON.parse(JSON.stringify(DEF_HRS));
 function weekStart(d){const x=new Date(d+'T12:00:00');return addDays(d,-((x.getDay()+6)%7))}
@@ -474,13 +486,14 @@ let user=null; try{user=sessionStorage.getItem('maycao-user')}catch(e){}
 if(user&&!ACT().some(b=>b.id===user))user=null;
 const isDono=()=>user==='b1';
 const visBarbers=()=>isDono()?ACT():ACT().filter(b=>b.id===user);
-function menu(){return isDono()?[['painel','Painel'],['agenda','Agenda'],['clientes','Clientes'],['financeiro','Financeiro'],['estoque','Estoque'],['links','Ajustes']]:[['painel','Painel'],['agenda','Minha agenda'],['financeiro','Meus ganhos']]}
-let view='painel', mode='admin';
+function menu(){return isDono()?[['painel','Painel'],['agenda','Agenda'],['clientes','Clientes'],['mensal','Planos'],['financeiro','Financeiro'],['estoque','Estoque'],['links','Ajustes']]:[['painel','Painel'],['agenda','Minha agenda'],['mensal','Planos'],['financeiro','Meus ganhos']]}
+let view='painel', mode='admin', CV='agendar', CPLAN=null;
 function route(){
   let h='';try{h=location.hash.slice(1)}catch(e){}
   if(h==='site'){location.href=SITE_URL;return}
   if(/^s-/.test(h)&&mode==='site')return
-  if(/^agendar/.test(h)){mode='client';const slug=h.split('-')[1];const b=slug&&ACT().find(x=>x.slug===slug);
+  if(/^conta/.test(h)){mode='client';CV='conta';const pl=h.split('-')[1];if(pl)CPLAN=pl;return}
+  if(/^agendar/.test(h)){mode='client';CV='agendar';const slug=h.split('-')[1];const b=slug&&ACT().find(x=>x.slug===slug);
     if(!W.step||W.step===4||W.slug!==slug){W={step:b?1:0,barberId:b?b.id:null,lock:!!b,slug}}}
   else{mode='admin';if(menu().some(v=>v[0]===h))view=h}
 }
@@ -500,19 +513,19 @@ function render(){
   document.body.classList.toggle('client',mode==='client');
   document.body.classList.toggle('locked',mode==='admin'&&!user);
   const v=document.getElementById('view');
-  if(mode==='client'){v.innerHTML=(preview?PVBAR():'')+agendar();return}
+  if(mode==='client'){v.innerHTML=(preview?PVBAR():'')+(CV==='conta'?conta():agendar());slotMount();return}
   if(!SB){document.body.classList.add('locked');v.innerHTML=semConfig();return}
   if(!SESSION){document.body.classList.add('locked');v.innerHTML=deviceLogin();return}
   if(!READY&&!HAD_CACHE){document.body.classList.add('locked');v.innerHTML=LOADERR?`<div class="loadbox"><p class="brand" style="font-size:28px">Não deu para carregar</p><p class="sub">${esc(LOADERR)}</p><div class="btns" style="justify-content:center"><button class="btn pri" data-a="retry-load">Tentar de novo</button><button class="btn" data-a="device-out">Entrar com outro e-mail</button></div></div>`:`<div class="loadbox"><div class="spin"></div><p class="sub">Carregando os dados da barbearia…</p></div>`;return}
   if(!user){v.innerHTML=login();return}
   if(B(user).mustChange){document.body.classList.add('locked');v.innerHTML=setPass();return}
   if(!menu().some(m=>m[0]===view))view='painel';
-  nav();const f={painel,agenda,clientes,financeiro,estoque,links}[view];v.innerHTML=f();if(view==='agenda'&&agView==='dia')scrollAgenda()
+  nav();const f={painel:painelComBaixa,agenda,clientes,financeiro,estoque,links,mensal}[view];v.innerHTML=f();if(view==='agenda'&&agView==='dia')scrollAgenda()
 }
 let pend=false;
 function rr(){const a=document.activeElement;if(a&&a.matches&&a.matches('#view input,#view select')){pend=true;return}render()}
 document.addEventListener('focusout',()=>{if(pend){setTimeout(()=>{const a=document.activeElement;if(!(a&&a.matches&&a.matches('#view input,#view select'))){pend=false;render()}},0)}});
-window.addEventListener('hashchange',()=>{route();if(mode==='client')loadOcupados().then(rr);render();window.scrollTo({top:0})});
+window.addEventListener('hashchange',()=>{route();if(mode==='client'){loadOcupados().then(rr);if(CT)loadConta()}render();window.scrollTo({top:0})});
 
 
 /* ---------- Site público ---------- */
@@ -619,6 +632,8 @@ function links(){
   <section class="panel"><div class="ph"><h2>Site da barbearia</h2><a class="btn sm pri" href="${SITE_URL}" target="_blank" rel="noopener">Ver o site</a></div><div class="row"><div class="av">🌐</div><div class="grow"><div class="t">Página inicial com preços, horários e agendamento</div><div class="s mono linktxt">${SITE_URL}</div></div><button class="btn sm" data-a="copy-link" data-t="site">Copiar</button></div></section>
   <section class="panel"><div class="ph"><h2>Horário de funcionamento</h2><button class="btn sm pri" data-a="hours-save">Salvar horários</button></div><div id="hrsform">${[1,2,3,4,5,6,0].map(d=>{const v=S.hours[d];return `<div class="hrow" data-d="${d}"><b>${DIAS[d].slice(0,3)}</b><label style="display:flex;gap:6px;align-items:center;font-size:13px"><input type="checkbox" class="hopen" ${v?'checked':''}> Abre</label><input type="time" class="ho" step="1800" value="${v?v[0]:'09:00'}" ${v?'':'disabled'} aria-label="Abre às"><input type="time" class="hc" step="1800" value="${v?v[1]:'18:00'}" ${v?'':'disabled'} aria-label="Fecha às"></div>`}).join('')}</div><p class="sub" style="margin:0;font-size:12.5px">${esc(hoursText())}</p></section>
   <section class="panel"><div class="ph"><h2>Serviços e preços</h2><button class="btn sm pri" data-a="svc-new">+ Serviço</button></div><div class="list">${S.services.map(x=>`<div class="row"><div class="grow"><div class="t">${esc(x.name)}</div><div class="s">${x.dur} min</div></div><b class="num">${brl(x.price)}</b><div class="btns" style="flex-wrap:nowrap"><button class="btn sm" data-a="svc-edit" data-id="${x.id}">Editar</button><button class="btn sm ghost danger" data-a="svc-del" data-id="${x.id}" aria-label="Remover ${esc(x.name)}">✕</button></div></div>`).join('')}</div></section>
+  <section class="panel"><div class="ph"><h2>Planos de mensalidade</h2><button class="btn sm pri" data-a="plan-new">+ Plano</button></div><div class="list">${(S.plans||[]).map(p=>`<div class="row"><div class="grow"><div class="t">${esc(p.name)}${p.off?' <span class="sub" style="font-size:12px">· pausado</span>':''}</div><div class="s">${esc(planoTxt(p))}</div></div><b class="num">${brl(+p.price||0)}</b><div class="btns" style="flex-wrap:nowrap"><button class="btn sm" data-a="plan-edit" data-id="${p.id}">Editar</button><button class="btn sm ghost danger" data-a="plan-del" data-id="${p.id}" aria-label="Remover ${esc(p.name)}">✕</button></div></div>`).join('')||'<p class="empty">Nenhum plano ainda.</p>'}</div><p class="sub" style="margin:0;font-size:12.5px">Os planos aparecem no site. O cliente assina pelo app com o celular e uma senha, e paga na barbearia.</p></section>
+  <section class="panel"><div class="ph"><h2>Slot de desconto 🎰</h2><button class="btn sm pri" data-a="slot-edit">Editar</button></div>${slotResumo()}</section>
   <section class="panel"><div class="ph"><h2>Contato e redes</h2><button class="btn sm" data-a="info-edit">Editar</button></div><dl class="kv"><dt>Instagram</dt><dd class="mono" style="word-break:break-all">${esc(igUrl(S.info.insta))||'—'}</dd><dt>WhatsApp</dt><dd class="mono" style="word-break:break-all">${esc(waUrl(S.info.whats))||'—'}</dd><dt>Endereço</dt><dd>${esc(S.info.end)}</dd><dt>Slogan</dt><dd>${esc(S.info.slogan||'')}</dd><dt>Destaques</dt><dd>${esc([S.info.nota,S.info.clientes&&S.info.clientes+' clientes',S.info.desde&&'desde '+S.info.desde].filter(Boolean).join(' · '))}</dd><dt>Quem somos</dt><dd style="font-weight:500">${esc(S.info.sobre||'—')}</dd></dl></section>
   <section class="panel"><h2>Links de agendamento</h2><p class="sub" style="margin:0;font-size:13px">Coloque no botão de cada barbeiro no site, no Instagram e no WhatsApp.</p>${items.map(i=>`<div class="row"><div class="av" style="${i.b?`background:${i.b.color};color:#fff`:''}">${i.b?initials(i.b.name):'★'}</div><div class="grow"><div class="t">${esc(i.name)}</div><div class="s mono linktxt">${APP_URL}#${i.token}</div></div><div class="btns" style="flex-wrap:nowrap"><button class="btn sm" data-a="copy-link" data-t="${i.token}">Copiar</button><button class="btn sm" data-a="preview" data-t="${i.token}">Ver</button></div></div>`).join('')}</section>
   <p class="sub" style="font-size:13px">Tudo o que muda aqui (preços, serviços, horários, equipe e contato) aparece na hora no site. Só a senha do Maycão consegue salvar essas mudanças.</p>`;
@@ -686,7 +701,7 @@ function painelDono(){
 }
 function apptRow(a,showDate){
   const s=SV(a.serviceId),c=C(a.clientId),b=B(a.barberId);
-  return `<div class="row" style="cursor:pointer" data-a="appt" data-id="${a.id}"><span class="time">${showDate?short(a.date)+' ':''}${a.time}</span><div class="grow"><div class="t">${esc(c.name)}</div><div class="s">${esc(s.name)} · ${esc(b.name)}</div></div><span class="pill p-${a.status}">${stLabel(a.status)}</span></div>`;
+  return `<div class="row" style="cursor:pointer" data-a="appt" data-id="${a.id}"><span class="time">${showDate?short(a.date)+' ':''}${a.time}</span><div class="grow"><div class="t">${esc(c.name)}</div><div class="s">${esc(s.name)}${a.plano?' · plano':''}${a.origin==='avulso'?' · sem agendamento':''}${a.slot&&a.slot.ganhou?' · 🎰 '+(a.slot.tipo==='desconto'?a.slot.valor+'% off':esc(a.slot.texto||'brinde')):''} · ${esc(b.name)}</div></div><span class="pill p-${a.status}">${stLabel(a.status)}</span></div>`;
 }
 const stLabel=s=>({agendado:'Agendado',confirmado:'Confirmado',concluido:'Concluído',faltou:'Faltou',cancelado:'Cancelado'}[s]);
 
@@ -694,7 +709,7 @@ const stLabel=s=>({agendado:'Agendado',confirmado:'Confirmado',concluido:'Conclu
 let agDate=TODAY, agView='dia';
 function agTools(){return `<div class="agtools"><div class="seg"><button data-a="agview" data-m="dia" aria-pressed="${agView==='dia'}">Dia</button><button data-a="agview" data-m="semana" aria-pressed="${agView==='semana'}">Semana</button></div>
       <div class="seg"><button data-a="day" data-d="-1" aria-label="Anterior">‹</button><button data-a="day" data-d="0" aria-pressed="${agDate===TODAY}">Hoje</button><button data-a="day" data-d="1" aria-label="Próximo">›</button></div>
-      <button class="btn pri" data-a="new">+ Novo horário</button></div>`}
+      <button class="btn" data-a="avulso">+ Sem agendamento</button><button class="btn pri" data-a="new">+ Novo horário</button></div>`}
 function agendaSemana(){
   const bs=visBarbers();const d0=new Date(agDate+'T12:00:00');const mon=addDays(agDate,-((d0.getDay()+6)%7));
   const days=[0,1,2,3,4,5].map(i=>addDays(mon,i));
@@ -748,32 +763,42 @@ function agendar(){
     const wmsg=`Olá! Acabei de agendar pelo site da Barbearia do Maycão 💈\n\n✂ ${s.name}\n👤 ${b.name}\n📅 ${fmtDay(a.date)} às ${a.time}\n\nNome: ${a.name}`;
     return top+`<section class="panel done-card"><span class="pill p-confirmado">Horário reservado</span><p class="big">Tá marcado, ${esc(a.name.split(' ')[0])}!</p>
       <p class="sub">${esc(s.name)} com ${esc(b.name)}<br>${fmtDay(a.date)} às ${a.time}</p>
-      <p class="sub" style="font-size:13px">Precisa remarcar ou cancelar? Chama a gente no WhatsApp.</p>
-      <div class="btns">${wn?`<a class="btn pri" target="_blank" rel="noopener" href="${esc(wn+(wn.includes('?')?'&':'?')+'text='+encodeURIComponent(wmsg))}">Avisar no WhatsApp</a>`:''}<button class="btn" data-a="w-reset">Agendar outro horário</button></div></section>`+foot}
+      <div id="slotbox" style="width:100%"></div>
+      ${a.plano?(a.pendente?`<p style="margin:0;color:var(--warn);font-weight:700">Pelo plano · mensalidade pendente: pague ${brl(+a.valorPlano||0)} na barbearia</p>`:`<p style="margin:0;color:var(--ok);font-weight:700">Pelo seu plano · sem custo</p>`):''}
+      <p class="sub" style="font-size:13px">${CT?'Para cancelar, use Minha conta.':'Precisa remarcar ou cancelar? Chama a gente no WhatsApp.'}</p>
+      <div class="btns">${wn?`<a class="btn pri" target="_blank" rel="noopener" href="${esc(wn+(wn.includes('?')?'&':'?')+'text='+encodeURIComponent(wmsg))}">Avisar no WhatsApp</a>`:''}<button class="btn" data-a="w-reset">Agendar outro horário</button>${CT?'<a class="btn" href="#conta">Minha conta</a>':''}</div></section>`+foot}
   const s=W.serviceId&&SV(W.serviceId);
+  const PLW=s?cplanoServico(s.id):null;
+  const acc=CT&&CP?`<div class="row" style="border:1px solid var(--line);border-radius:10px;padding:8px 12px"><div class="grow"><div class="t">Olá, ${esc((CP.nome||'').split(' ')[0])}</div><div class="s">${CP.assinatura?esc((PL(CP.assinatura.planId)||{}).name||CP.assinatura.planName||'Plano')+' · '+(SITL[CP.assinatura.situacao]||''):'Sem mensalidade'}</div></div><a class="btn sm" href="#conta">Minha conta</a></div>`
+    :`<div class="row" style="border:1px solid var(--line);border-radius:10px;padding:8px 12px"><div class="grow"><div class="t">Tem mensalidade?</div><div class="s">Entre com seu celular para agendar pelo plano.</div></div><a class="btn sm" href="#conta">Entrar</a></div>`;
   const canBack=W.step>(W.lock?1:0);
   const back=canBack?'<button type="button" class="btn ghost" data-a="w-back">‹ Voltar</button>':'';
   let body='';
   if(W.step===0) body=`<h2>Com quem você quer cortar?</h2><div class="opts">${ACT().map(b=>`<button class="opt" data-a="w-bar" data-id="${b.id}" aria-pressed="${W.barberId===b.id}"><span class="av" style="background:${b.color};color:#fff">${initials(b.name)}</span><b>${esc(b.name)}</b><small>${b.id==='b1'?'Dono da casa':'Barbeiro'}</small></button>`).join('')}<button class="opt" data-a="w-bar" data-id="any" aria-pressed="${W.barberId==='any'}"><span class="av">?</span><b>Tanto faz</b><small>Primeiro horário livre</small></button></div>`;
-  if(W.step===1) body=`${W.lock?`<div class="row" style="border:0;padding:0"><span class="av" style="background:${B(W.barberId).color};color:#fff">${initials(B(W.barberId).name)}</span><div class="grow"><div class="t">Agenda de ${esc(B(W.barberId).name)}</div><div class="s"><a href="#agendar">Prefiro outro barbeiro</a></div></div></div>`:''}<h2>Escolha o serviço</h2><div class="opts">${S.services.map(x=>`<button class="opt" data-a="w-svc" data-id="${x.id}" aria-pressed="${W.serviceId===x.id}"><b>${esc(x.name)}</b><span class="pr">${brl(x.price)}</span><small>${x.dur} min</small></button>`).join('')}</div><div>${back}</div>`;
+  if(W.step===1) body=`${W.lock?`<div class="row" style="border:0;padding:0"><span class="av" style="background:${B(W.barberId).color};color:#fff">${initials(B(W.barberId).name)}</span><div class="grow"><div class="t">Agenda de ${esc(B(W.barberId).name)}</div><div class="s"><a href="#agendar">Prefiro outro barbeiro</a></div></div></div>`:''}<h2>Escolha o serviço</h2><div class="opts">${S.services.map(x=>`<button class="opt" data-a="w-svc" data-id="${x.id}" aria-pressed="${W.serviceId===x.id}"><b>${esc(x.name)}</b><span class="pr">${cplanoServico(x.id)?'<span style="color:var(--ok)">No plano</span>':brl(x.price)}</span><small>${x.dur} min</small></button>`).join('')}</div><div>${back}</div>`;
   if(W.step===2){
-    const days=[];let d=TODAY,g=0;while(days.length<8&&g++<30){if(!isClosed(d))days.push(d);d=addDays(d,1)}
+    const okDia=x=>!PLW||!Array.isArray(PLW.diasSemana)||!PLW.diasSemana.length||PLW.diasSemana.includes(new Date(x+'T12:00:00').getDay());
+    const days=[];let d=TODAY,g=0;while(days.length<8&&g++<40){if(!isClosed(d)&&okDia(d))days.push(d);d=addDays(d,1)}
     if(!W.date||!days.includes(W.date))W.date=days[0];
     const times=wizTimes(W.date);
-    body=`<h2>Escolha o dia</h2><div class="days">${days.map(x=>{const dd=new Date(x+'T12:00:00');return`<button class="day" data-a="w-day" data-d="${x}" aria-pressed="${W.date===x}"><small>${x===TODAY?'hoje':WD[dd.getDay()]}</small><b>${dd.getDate()}</b></button>`}).join('')}</div>
+    body=`${PLW&&Array.isArray(PLW.diasSemana)&&PLW.diasSemana.length?`<p class="sub" style="margin:0">Pelo plano, só dá para agendar em: <b>${diasTxt(PLW.diasSemana)}</b>.</p>`:''}<h2>Escolha o dia</h2><div class="days">${days.map(x=>{const dd=new Date(x+'T12:00:00');return`<button class="day" data-a="w-day" data-d="${x}" aria-pressed="${W.date===x}"><small>${x===TODAY?'hoje':WD[dd.getDay()]}</small><b>${dd.getDate()}</b></button>`}).join('')}</div>
       <h2>Horários livres</h2>${times.length?`<div class="times">${times.map(t=>`<button data-a="w-time" data-t="${t}" aria-pressed="${W.time===t}">${t}</button>`).join('')}</div>`:'<p class="empty">Sem horários livres nesse dia. Tente outro.</p>'}
       <div class="btns">${back}${W.time?'<button class="btn pri" data-a="w-next">Continuar</button>':''}</div>`;
   }
-  if(W.step===3) body=`<h2>Seus dados</h2><form id="wform" style="display:flex;flex-direction:column;gap:12px">
+  if(W.step===3&&CT&&CP) body=`<h2>Confirmar</h2><form id="wform" style="display:flex;flex-direction:column;gap:12px"><p style="margin:0">Agendando como <b>${esc(CP.nome)}</b> · ${esc(CP.fone)}</p>
+    ${PLW?`<p style="margin:0;color:var(--ok);font-weight:600">Pelo seu plano ${esc(PLW.name)}${CP.assinatura&&CP.assinatura.situacao!=='ativo'?` · a mensalidade (${brl(+(CP.assinatura.price??PLW.price))}) fica pendente para pagar na barbearia`:' · sem custo'}</p>`:''}
+    <p id="werr" style="color:var(--bad);margin:0;font-size:13.5px" hidden></p>
+    <div class="btns">${back}<button class="btn pri" type="submit" id="wsend">Confirmar agendamento</button></div></form>`;
+  else if(W.step===3) body=`<h2>Seus dados</h2><form id="wform" style="display:flex;flex-direction:column;gap:12px">
     <div class="fld"><label for="wname">Nome</label><input id="wname" required value="${esc(W.name||'')}" placeholder="Como te chamamos?"></div>
     <div class="fld"><label for="wphone">WhatsApp</label><input id="wphone" required inputmode="tel" value="${esc(W.phone||'')}" placeholder="(47) 9 0000-0000"></div>
     <p id="werr" style="color:var(--bad);margin:0;font-size:13.5px" hidden></p>
     <div class="btns">${back}<button class="btn pri" type="submit" id="wsend">Confirmar agendamento</button></div></form>`;
   const bn=W.barberId==='any'?'Tanto faz':W.barberId?B(W.barberId).name:'—';
-  return top+`<div class="steps">${steps.map(([k,x],i)=>`<span class="${k===W.step?'on':k<W.step?'done':''}">${i+1}. ${x}</span>`).join('')}</div>
+  return top+acc+`<div class="steps">${steps.map(([k,x],i)=>`<span class="${k===W.step?'on':k<W.step?'done':''}">${i+1}. ${x}</span>`).join('')}</div>
   <div class="book"><section class="panel">${body}</section>
   <aside class="panel summary"><h2>Resumo</h2><dl><dt>Barbeiro</dt><dd>${esc(bn)}</dd><dt>Serviço</dt><dd>${s?esc(s.name):'—'}</dd><dt>Quando</dt><dd>${W.time?short(W.date)+' às '+W.time:'—'}</dd><dt>Duração</dt><dd>${s?s.dur+' min':'—'}</dd></dl>
-  <div class="total"><span class="sub" style="margin:0">Total</span><b>${s?brl(s.price):'—'}</b></div><p class="sub" style="font-size:12.5px;margin:0">Pagamento na barbearia: Pix, dinheiro ou cartão.</p></aside></div>`+foot;
+  <div class="total"><span class="sub" style="margin:0">Total</span><b>${s?(PLW?'Plano':brl(s.price)):'—'}</b></div><p class="sub" style="font-size:12.5px;margin:0">Pagamento na barbearia: Pix, dinheiro ou cartão.</p></aside></div>`+foot;
 }
 function wizTimes(date){
   const dur=SV(W.serviceId).dur;
@@ -788,11 +813,374 @@ function findOrCreateClient(name,phone){
 }
 
 
+
+/* ---------- Mensalidades (planos) ---------- */
+const PL=id=>(S.plans||[]).find(p=>p.id===id);
+const DCURTO=['dom','seg','ter','qua','qui','sex','sáb'];
+const diasTxt=arr=>{if(!Array.isArray(arr)||!arr.length||arr.length===7)return'todos os dias';const o=[1,2,3,4,5,6,0].filter(d=>arr.includes(d));return o.map(d=>DCURTO[d]).join(', ')};
+const subSit=s=>!s?'':s.status==='pendente'?'pendente':s.status==='ativo'?(s.fim>TODAY?'ativo':'vencido'):'';
+const SITL={ativo:'Em dia',pendente:'Pagamento pendente',vencido:'Vencido'};
+const SITP={ativo:'p-concluido',pendente:'p-confirmado',vencido:'p-faltou'};
+const subUsados=s=>S.appts.filter(a=>a.subId===s.id&&a.status!=='cancelado').length;
+const subDoCliente=cid=>S.subs.filter(s=>s.clientId===cid&&s.status!=='cancelado').sort((a,b)=>String(b.criado||'').localeCompare(String(a.criado||'')))[0];
+const planoTxt=p=>p?`${p.cortes||4} cortes · ${p.dias||30} dias · intervalo ${p.intervalo??7} dias · ${diasTxt(p.diasSemana)}`:'';
+
+/* ---------- Conta do cliente (celular + senha) ---------- */
+let CT=null;try{CT=localStorage.getItem('maycao-cli-token')}catch(e){}
+let CP=null,CMODE='entrar',CCONF=null,CBUSY=false;
+const setCT=t=>{CT=t;try{t?localStorage.setItem('maycao-cli-token',t):localStorage.removeItem('maycao-cli-token')}catch(e){}};
+async function loadConta(){
+  if(!CT||!SB)return;
+  try{const {data,error}=await SB.rpc('cliente_painel',{p_token:CT});
+    if(error)throw error;
+    if(data&&data.erro==='sessao'){setCT(null);CP=null}else CP=data;
+  }catch(e){console.warn('conta',e)}
+  rr();
+}
+function cplano(){ // plano do cliente que vale para agendar (ou null)
+  if(!CT||!CP||!CP.assinatura)return null;
+  const a=CP.assinatura,p=PL(a.planId)||a.plano;
+  if(!p||!['ativo','pendente','vencido'].includes(a.situacao))return null;
+  return p;
+}
+const cplanoServico=sid=>{const p=cplano();return p&&Array.isArray(p.servicos)&&p.servicos.includes(sid)?p:null};
+function ctop(t){return `<header class="chead"><a class="back" href="${SITE_URL}">‹ Voltar ao site</a><p class="brand">Barbearia do Maycão<small>${esc(S.info.end)} · ${esc(hoursText())}</small></p><div class="pole" aria-hidden="true"></div><h1>${t}</h1></header>`}
+function planCards(sel,acao){
+  const ps=(S.plans||[]).filter(p=>!p.off);
+  if(!ps.length)return '<p class="empty">A barbearia ainda não cadastrou planos.</p>';
+  return `<div class="opts">${ps.map(p=>`<div class="opt" style="${p.id===sel?'border-color:var(--accent);background:var(--accent-soft)':''}"><b>${esc(p.name)}</b><span class="pr">${brl(+p.price||0)}<small style="font-family:var(--f-body);font-size:13px;font-weight:600"> /mês</small></span>
+    <small>${p.cortes||4} cortes em ${p.dias||30} dias</small><small>${esc((p.servicos||[]).map(id=>SV(id)?.name).filter(Boolean).join(', ')||'—')}</small><small>Vale: ${diasTxt(p.diasSemana)}</small>
+    ${acao?`<button class="btn sm ${p.id===sel?'pri':''}" style="margin-top:6px" data-a="c-plan" data-id="${p.id}">${acao}</button>`:''}</div>`).join('')}</div>`;
+}
+function conta(){
+  if(!S.services.length)return ctop('Minha conta')+`<section class="panel"><div class="loadbox" style="margin:20px auto"><div class="spin"></div></div></section>`;
+  if(!CT){
+    const pSel=CPLAN&&PL(CPLAN);
+    return ctop(CMODE==='criar'?'Criar minha conta':'Entrar na minha conta')+`
+    ${pSel?`<section class="panel"><h2>Plano escolhido</h2><p style="margin:0"><b>${esc(pSel.name)}</b> · ${brl(+pSel.price||0)}/mês. Entre ou crie sua conta para assinar.</p></section>`:''}
+    <section class="panel" style="max-width:480px"><div class="seg" style="align-self:flex-start"><button data-a="c-mode" data-m="entrar" aria-pressed="${CMODE==='entrar'}">Já tenho conta</button><button data-a="c-mode" data-m="criar" aria-pressed="${CMODE==='criar'}">Criar conta</button></div>
+    <form id="cform" style="display:flex;flex-direction:column;gap:12px">
+      ${CMODE==='criar'?`<div class="fld"><label for="c_nome">Nome</label><input id="c_nome" autocomplete="name" required></div>`:''}
+      <div class="fld"><label for="c_fone">Celular (WhatsApp)</label><input id="c_fone" inputmode="tel" autocomplete="tel" placeholder="(47) 9 0000-0000" required></div>
+      <div class="fld"><label for="c_senha">${CMODE==='criar'?'Crie uma senha (mínimo 4)':'Senha'}</label><input id="c_senha" type="password" autocomplete="${CMODE==='criar'?'new-password':'current-password'}" required></div>
+      <p id="cerr" style="color:var(--bad);margin:0;font-size:13.5px" hidden></p>
+      <button class="btn pri" type="submit" id="csend">${CMODE==='criar'?'Criar conta':'Entrar'}</button></form>
+    <p class="sub" style="margin:0;font-size:12.5px">Esqueceu a senha? Fale com a barbearia que eles liberam uma nova.</p></section>
+    <section class="panel"><h2>Planos de mensalidade</h2>${planCards(CPLAN,null)}</section>
+    <p class="cfoot"><a href="#agendar">Agendar sem conta</a></p>`;
+  }
+  if(!CP)return ctop('Minha conta')+`<section class="panel"><div class="loadbox" style="margin:20px auto"><div class="spin"></div><p class="sub">Carregando sua conta…</p></div></section>`;
+  const a=CP.assinatura,p=a&&(PL(a.planId)||a.plano),sit=a&&a.situacao;
+  const total=p?(+p.cortes||4):0, usados=a?(+a.usados||0):0;
+  const podeEscolher=!a||sit==='vencido'||(sit==='pendente'&&usados===0);
+  const card=a?`<section class="panel"><div class="ph"><h2>Minha mensalidade</h2><span class="pill ${SITP[sit]||''}">${SITL[sit]||''}</span></div>
+     <p style="margin:0;font-size:18px"><b>${esc(p?.name||a.planName||'Plano')}</b> · ${brl(+(a.price??p?.price??0))}/mês</p>
+     ${sit==='ativo'?`<p class="sub" style="margin:0">Pago em ${short(a.inicio)} · <b>vence em ${short(a.fim)}</b></p>`:''}
+     ${sit==='pendente'?`<p style="margin:0;color:var(--warn);font-weight:600">Pague ${brl(+(a.price??0))} na barbearia. Assim que o barbeiro confirmar, seu plano fica em dia por ${a.dias||p?.dias||30} dias.</p>`:''}
+     ${sit==='vencido'?`<p style="margin:0;color:var(--bad);font-weight:600">Seu plano venceu em ${short(a.fim)}. Para usar de novo, renove e pague na barbearia.</p>`:''}
+     ${sit!=='vencido'?`<div class="bar"><div class="bt"><span>Cortes usados</span><span class="num">${usados} de ${total}</span></div><div class="bk"><i style="width:${Math.min(100,usados/Math.max(1,total)*100)}%"></i></div></div>`:''}
+     <p class="sub" style="margin:0;font-size:13px">${esc(planoTxt(p))}</p>
+     <div class="btns"><a class="btn pri" href="#agendar">Agendar pelo plano</a>${sit==='vencido'&&p?`<button class="btn" data-a="c-plan" data-id="${p.id}">Renovar este plano</button>`:''}</div></section>`:'';
+  const ag=(CP.agendamentos||[]);
+  return ctop('Olá, '+esc((CP.nome||'').split(' ')[0]||'cliente'))+card+`
+   ${podeEscolher?`<section class="panel"><h2>${a?(sit==='pendente'?'Trocar de plano':'Escolher outro plano'):'Escolha seu plano'}</h2>${planCards(CPLAN||(a&&a.planId),a&&sit==='pendente'?'Trocar para este':'Assinar este')}<p class="sub" style="margin:0;font-size:12.5px">O pagamento é feito na barbearia (Pix, dinheiro ou cartão).</p></section>`:''}
+   <section class="panel"><div class="ph"><h2>Meus próximos horários</h2><a class="btn sm pri" href="#agendar">+ Agendar</a></div><div class="list">${ag.length?ag.map(x=>{const s=SV(x.serviceId),b=B(x.barberId);return `<div class="row"><span class="time">${short(x.date)} ${x.time}</span><div class="grow"><div class="t">${esc(s?.name||'Serviço')}${x.plano?' · <span style="color:var(--ok)">plano</span>':''}</div><div class="s">${esc(b?.name||'')} · ${x.plano?'sem custo':brl(+x.price||0)}</div></div><button class="btn sm ${CCONF===x.id?'danger':''}" data-a="c-cancel" data-id="${x.id}">${CCONF===x.id?'Confirmar cancelamento':'Cancelar'}</button></div>`}).join(''):'<p class="empty">Nenhum horário marcado.</p>'}</div></section>
+   ${(CP.pagamentos||[]).length?`<section class="panel"><h2>Pagamentos da mensalidade</h2><div class="list">${CP.pagamentos.map(x=>`<div class="row"><div class="grow"><div class="t">${esc(x.plano||'Plano')}</div><div class="s">Pago em ${short(x.pagoEm)} · válido até ${x.fim?short(addDays(x.fim,-1)):'—'}</div></div><b class="num">${brl(+x.valor||0)}</b></div>`).join('')}</div></section>`:''}
+   <div class="btns"><span class="sub" style="font-size:13px">${esc(CP.fone||'')}</span><button class="btn ghost sm" data-a="c-out">Sair da conta</button></div>`;
+}
+
+/* ---------- Equipe: aba Planos ---------- */
+function mensal(){
+  const all=S.subs.filter(s=>s.status!=='cancelado');
+  const cli=id=>C(id)||{name:'Cliente',phone:''};
+  const by=k=>all.filter(s=>subSit(s)===k);
+  const pend=by('pendente').sort((a,b)=>String(a.criado).localeCompare(String(b.criado)));
+  const atv=by('ativo').sort((a,b)=>a.fim.localeCompare(b.fim));
+  const ult={};all.forEach(s=>{const c=s.clientId;if(!ult[c]||String(s.criado||'')>String(ult[c].criado||''))ult[c]=s});
+  const venc=Object.values(ult).filter(s=>subSit(s)==='vencido'&&s.fim>=addDays(TODAY,-60)).sort((a,b)=>b.fim.localeCompare(a.fim));
+  const row=(s,btn)=>{const c=cli(s.clientId),p=PL(s.planId),u=subUsados(s);return `<div class="row" style="cursor:pointer" data-a="sub" data-id="${s.id}"><div class="av">${initials(c.name)}</div><div class="grow"><div class="t">${esc(c.name)}</div><div class="s">${esc(p?.name||s.planName||'Plano')} · ${brl(+s.price||0)} · ${u}/${p?.cortes||4} cortes${subSit(s)==='ativo'?' · vence '+short(s.fim):subSit(s)==='vencido'?' · venceu '+short(s.fim):''}</div></div>${btn||`<span class="pill ${SITP[subSit(s)]}">${SITL[subSit(s)]}</span>`}</div>`};
+  const receita=S.tx.filter(t=>t.cat==='Mensalidade'&&t.date>=TODAY.slice(0,8)+'01').reduce((x,t)=>x+t.value,0);
+  return head('Planos','Mensalidades dos clientes',`<button class="btn pri" data-a="sub-new">+ Mensalidade no balcão</button>`)+`
+  <div class="kpis"><div class="kpi"><span class="l">Em dia</span><span class="v">${atv.length}</span><span class="h">planos ativos</span></div>
+   <div class="kpi"><span class="l">A receber</span><span class="v" style="color:var(--warn)">${pend.length}</span><span class="h">${brl(pend.reduce((x,s)=>x+(+s.price||0),0))}</span></div>
+   <div class="kpi"><span class="l">Vencidos</span><span class="v" style="color:var(--bad)">${venc.length}</span><span class="h">últimos 60 dias</span></div>
+   <div class="kpi"><span class="l">Recebido no mês</span><span class="v">${brl(receita)}</span><span class="h">em mensalidades</span></div></div>
+  <section class="panel"><h2>Aguardando pagamento</h2><div class="list">${pend.map(s=>row(s,`<button class="btn sm pri" data-a="sub-pay" data-id="${s.id}">Recebi o pagamento</button>`)).join('')||'<p class="empty">Ninguém com pagamento pendente.</p>'}</div></section>
+  <section class="panel"><h2>Em dia</h2><div class="list">${atv.map(s=>row(s)).join('')||'<p class="empty">Nenhum plano ativo ainda.</p>'}</div></section>
+  <section class="panel"><h2>Vencidos</h2><div class="list">${venc.map(s=>{const c=cli(s.clientId);const msg=`Fala, ${c.name.split(' ')[0]}! Sua mensalidade na Barbearia do Maycão venceu. Bora renovar? É só pagar aqui na barbearia ou pelo app. 💈`;return row(s,`<a class="btn sm" target="_blank" rel="noopener" href="https://wa.me/55${String(c.phone).replace(/\D/g,'')}?text=${encodeURIComponent(msg)}">Chamar</a>`)}).join('')||'<p class="empty">Nenhum vencido.</p>'}</div></section>
+  ${(S.plans||[]).length?'':`<p class="sub">Nenhum plano cadastrado ainda. ${isDono()?'Crie em Ajustes → Planos de mensalidade.':'O Maycão cria em Ajustes.'}</p>`}`;
+}
+function subModal(id){
+  const s=S.subs.find(x=>x.id===id);if(!s)return;const c=C(s.clientId)||{name:'Cliente',phone:''},p=PL(s.planId),sit=subSit(s);
+  const usos=S.appts.filter(a=>a.subId===s.id&&a.status!=='cancelado').sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+  openM(mh(esc(c.name),`<span class="pill ${SITP[sit]||''}">${SITL[sit]||s.status}</span>`)+`<dl class="kv"><dt>Plano</dt><dd>${esc(p?.name||s.planName||'—')} · ${brl(+s.price||0)}</dd>
+   ${s.inicio?`<dt>Pago em</dt><dd>${short(s.inicio)}${s.pay?' · '+esc(s.pay):''}</dd><dt>Vence em</dt><dd>${short(s.fim)}</dd>`:''}<dt>Cortes</dt><dd>${usos.length} de ${p?.cortes||4}</dd><dt>Regras</dt><dd style="font-weight:500">${esc(planoTxt(p))}</dd><dt>WhatsApp</dt><dd>${esc(c.phone)}</dd></dl>
+   <div><h2 style="margin-bottom:4px">Cortes pelo plano</h2><div class="list">${usos.map(a=>apptRow(a,true)).join('')||'<p class="empty">Nenhum ainda.</p>'}</div></div>
+   <div class="btns">${sit==='pendente'?`<button class="btn pri" data-a="sub-pay" data-id="${s.id}">Recebi o pagamento</button>`:''}${isDono()?`<button class="btn danger" data-a="sub-cancel" data-id="${s.id}">Cancelar mensalidade</button>`:''}</div>`);
+}
+function subPayModal(id){
+  const s=S.subs.find(x=>x.id===id);const c=C(s.clientId)||{name:'Cliente'};
+  openM(mh('Receber mensalidade',esc(c.name))+`<p style="margin:0">${esc(s.planName||PL(s.planId)?.name||'Plano')} · <b>${brl(+s.price||0)}</b></p>
+   <div class="fld"><label for="spay">Forma de pagamento</label><select id="spay">${PAYS.map(x=>`<option>${x}</option>`).join('')}</select></div>
+   <p class="sub" style="margin:0">O plano fica em dia de hoje até ${short(addDays(TODAY,(+s.dias||30)))}.</p>
+   <div class="btns" style="justify-content:flex-end"><button class="btn" data-a="close">Voltar</button><button class="btn pri" data-a="sub-pay-ok" data-id="${s.id}">Confirmar pagamento</button></div>`);
+}
+function subNewModal(){
+  const ps=(S.plans||[]).filter(p=>!p.off);
+  if(!ps.length){toast(isDono()?'Crie um plano em Ajustes primeiro':'O Maycão precisa criar os planos em Ajustes');return}
+  openM(mh('Mensalidade no balcão')+`<form id="snform" style="display:flex;flex-direction:column;gap:12px">
+   <div class="fld"><label for="sn_c">Cliente</label><select id="sn_c"><option value="">+ Cliente novo</option>${S.clients.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select></div>
+   <div class="frow" id="sn_new"><div class="fld"><label for="sn_n">Nome</label><input id="sn_n"></div><div class="fld"><label for="sn_p">WhatsApp</label><input id="sn_p" inputmode="tel"></div></div>
+   <div class="fld"><label for="sn_pl">Plano</label><select id="sn_pl">${ps.map(p=>`<option value="${p.id}">${esc(p.name)} · ${brl(+p.price||0)}</option>`).join('')}</select></div>
+   <div class="fld"><label for="sn_pay">Já pagou?</label><select id="sn_pay"><option value="">Ainda não (fica pendente)</option>${PAYS.map(x=>`<option>${x}</option>`).join('')}</select></div>
+   <p id="snerr" style="color:var(--bad);margin:0;font-size:13.5px" hidden></p>
+   <div class="btns" style="justify-content:flex-end"><button type="button" class="btn" data-a="close">Voltar</button><button class="btn pri" type="submit">Salvar</button></div></form>`);
+  md.querySelector('#sn_c').addEventListener('change',e=>{md.querySelector('#sn_new').hidden=!!e.target.value});
+  md.querySelector('#snform').addEventListener('submit',e=>{e.preventDefault();const er=md.querySelector('#snerr');
+    let cid=md.querySelector('#sn_c').value;
+    if(!cid){const n=md.querySelector('#sn_n').value.trim(),ph=md.querySelector('#sn_p').value.trim();if(n.length<2){er.textContent='Informe o nome do cliente.';er.hidden=false;return}cid=findOrCreateClient(n,ph||'—').id}
+    const cur=subDoCliente(cid);if(cur&&['ativo','pendente'].includes(subSit(cur))){er.textContent='Esse cliente já tem mensalidade '+(subSit(cur)==='ativo'?'em dia':'pendente')+'.';er.hidden=false;return}
+    const p=PL(md.querySelector('#sn_pl').value),pay=md.querySelector('#sn_pay').value;
+    const s={id:'m'+uid(),clientId:cid,planId:p.id,planName:p.name,price:+p.price||0,dias:+p.dias||30,status:'pendente',criado:new Date().toISOString().slice(0,19)};
+    S.subs.push(s);if(pay)pagarSub(s,pay);save();closeM();render();toast(pay?'Mensalidade paga e ativa':'Mensalidade criada · pagamento pendente')});
+}
+function pagarSub(s,pay){
+  Object.assign(s,{status:'ativo',inicio:TODAY,fim:addDays(TODAY,+s.dias||30),pagoEm:TODAY,pay,pagoPor:user});
+  S.tx.push({id:uid(),date:TODAY,type:'in',cat:'Mensalidade',desc:(s.planName||'Plano')+' · '+((C(s.clientId)||{name:''}).name.split(' ')[0]),value:+s.price||0,method:pay,barberId:user,subId:s.id});
+}
+function planModal(id){
+  const p=id?PL(id):{id:'p'+uid(),name:'',price:100,cortes:4,intervalo:7,dias:30,servicos:[],diasSemana:[]};const novo=!id;
+  const ds=Array.isArray(p.diasSemana)?p.diasSemana:[];
+  openM(mh(novo?'Novo plano':'Editar plano')+`<form id="plform" style="display:flex;flex-direction:column;gap:12px">
+   <div class="fld"><label for="pl_n">Nome do plano</label><input id="pl_n" value="${esc(p.name)}" required placeholder="Ex.: Plano Corte"></div>
+   <div class="frow"><div class="fld"><label for="pl_p">Preço por mês (R$)</label><input id="pl_p" type="number" step="any" min="0" value="${+p.price||0}"></div><div class="fld"><label for="pl_c">Cortes por mês</label><input id="pl_c" type="number" min="1" max="31" value="${+p.cortes||4}"></div></div>
+   <div class="frow"><div class="fld"><label for="pl_i">Intervalo mínimo entre cortes (dias)</label><input id="pl_i" type="number" min="0" max="30" value="${p.intervalo??7}"></div><div class="fld"><label for="pl_d">Validade (dias)</label><input id="pl_d" type="number" min="1" max="365" value="${+p.dias||30}"></div></div>
+   <div class="fld"><label>Serviços incluídos no plano</label><div class="btns">${S.services.map(s=>`<label class="btn sm" style="gap:6px"><input type="checkbox" class="pl_s" value="${s.id}" ${(p.servicos||[]).includes(s.id)?'checked':''}> ${esc(s.name)}</label>`).join('')}</div></div>
+   <div class="fld"><label>Dias da semana em que o plano vale</label><div class="btns">${[1,2,3,4,5,6,0].map(d=>`<label class="btn sm" style="gap:6px"><input type="checkbox" class="pl_w" value="${d}" ${ds.includes(d)?'checked':''}> ${DCURTO[d]}</label>`).join('')}</div><span class="sub" style="font-size:12.5px">Nenhum marcado = vale em todos os dias que a barbearia abre.</span></div>
+   ${novo?'':`<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="pl_off" ${p.off?'checked':''}> Pausar plano (não aparece para novos clientes)</label>`}
+   <p id="plerr" style="color:var(--bad);margin:0;font-size:13.5px" hidden></p>
+   <div class="btns" style="justify-content:flex-end"><button type="button" class="btn" data-a="close">Voltar</button><button class="btn pri" type="submit">Salvar plano</button></div></form>`);
+  md.querySelector('#plform').addEventListener('submit',e=>{e.preventDefault();const er=md.querySelector('#plerr');
+    const o={id:p.id,name:md.querySelector('#pl_n').value.trim(),price:Math.max(0,+md.querySelector('#pl_p').value||0),cortes:Math.max(1,Math.round(+md.querySelector('#pl_c').value||4)),
+      intervalo:Math.max(0,Math.round(+md.querySelector('#pl_i').value||0)),dias:Math.max(1,Math.round(+md.querySelector('#pl_d').value||30)),
+      servicos:[...md.querySelectorAll('.pl_s:checked')].map(x=>x.value),diasSemana:[...md.querySelectorAll('.pl_w:checked')].map(x=>+x.value)};
+    const off=md.querySelector('#pl_off');if(off&&off.checked)o.off=true;
+    if(!o.name){er.textContent='Dê um nome ao plano.';er.hidden=false;return}
+    if(!o.servicos.length){er.textContent='Marque pelo menos um serviço incluído.';er.hidden=false;return}
+    if(novo)S.plans.push(o);else S.plans[S.plans.findIndex(x=>x.id===p.id)]=o;
+    save();closeM();render();toast('Plano salvo · já aparece no site')});
+}
+
+
+/* ---------- Slot de desconto ---------- */
+const ICO={
+ cabelo:'<path d="M5 15c0-6 3.5-10 8-10 3.5 0 6 2.5 6 6 0 1.8-.8 3-2 3-1-2-3.2-3.2-6.2-3.2C8.6 12.6 7.5 15 7.5 19"/><path d="M5 15c0 2 .6 3.4 1.5 4.5M11 5.5C9.5 3.8 7.5 3.5 6 4.2"/>',
+ maquina:'<rect x="7.5" y="8" width="9" height="13" rx="3"/><path d="M8 8V5h8v3M9.5 5V2.5M12 5V2.5M14.5 5V2.5"/><circle cx="12" cy="14.5" r="1.6"/>',
+ tesoura:'<circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.1 15.9M14.5 14.5 20 20M8.1 8.1 12 12"/>',
+ secador:'<path d="M3 8a5 5 0 0 1 5-5h9v9H8a5 5 0 0 1-5-4z"/><path d="M17 5.5h3.5M17 9.5h3.5M9 12l1.2 9h3l-1.2-9"/><circle cx="8" cy="7.5" r="1.4"/>',
+ barba:'<path d="M5 6v5c0 6 3.2 10 7 10s7-4 7-10V6"/><path d="M9 14.5c1.5 1 4.5 1 6 0"/><path d="M5 9c2 .3 3.5 1.5 4 3.5M19 9c-2 .3-3.5 1.5-4 3.5"/>',
+ navalha:'<path d="M3 18 13 8l3 3L6 21H3z"/><path d="m13 8 4.5-4.5 3 3L16 11"/>',
+ pente:'<rect x="3" y="7" width="18" height="4.5" rx="1.2"/><path d="M5 11.5V18M8 11.5V18M11 11.5V18M14 11.5V18M17 11.5V18M20 11.5V16"/>',
+ latinha:'<path d="M7.5 4.5h9l1 2.2v11.6l-1 2.2h-9l-1-2.2V6.7z"/><path d="M6.5 8.5h11M6.5 16.5h11M10 2.8h4"/><path d="M10 12c1-.8 3-.8 4 0"/>',
+ estrela:'<path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>'};
+const ICON_NOMES={cabelo:'Cabelo',maquina:'Máquina',tesoura:'Tesoura',secador:'Secador',barba:'Barba',navalha:'Navalha',pente:'Pente',latinha:'Latinha',estrela:'Estrela'};
+const icoSvg=(k,sz=44)=>`<svg width="${sz}" height="${sz}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICO[k]||ICO.estrela}</svg>`;
+const premioTxt=it=>it.tipo==='desconto'?(+it.valor||0)+'% de desconto':(it.texto||'Brinde');
+function slotResumo(){
+  const s=S.slot;if(!s)return '<p class="empty">Rode o arquivo slot.sql no Supabase para ligar o slot.</p>';
+  return `<p style="margin:0">${s.ativo?'<span class="pill p-concluido">Ligado</span>':'<span class="pill p-faltou">Desligado</span>'} <span class="sub" style="font-size:13px">· cada cliente gira 1 vez a cada ${+s.limiteDias||0} dias · só agendamento online, fora do plano</span></p>
+   ${(s.maquinas||[]).map(m=>{const tot=(m.itens||[]).reduce((x,i)=>x+(+i.chance||0),0);return `<div class="row"><div class="grow"><div class="t">${esc(m.nome)}</div><div class="s">${esc((m.servicos||[]).map(id=>SV(id)?.name).filter(Boolean).join(', ')||'nenhum serviço')} · chance de ganhar algo: ${tot}%</div>
+     <div class="btns" style="margin-top:6px">${(m.itens||[]).map(i=>`<span class="pill" style="background:var(--surface-2);color:var(--ink);gap:6px"><span style="color:var(--accent);display:inline-flex">${icoSvg(i.icone,16)}</span>${esc(premioTxt(i))} · ${+i.chance||0}%</span>`).join('')}</div></div></div>`}).join('')}`;
+}
+let SLOTD=null;
+function slotModal(){
+  if(!SLOTD)SLOTD=JSON.parse(JSON.stringify(S.slot||{ativo:true,limiteDias:7,maquinas:[]}));
+  const d=SLOTD;
+  const icoSel=(mi,ii,v)=>`<select data-f="icone" data-m="${mi}" data-i="${ii}">${Object.keys(ICON_NOMES).map(k=>`<option value="${k}" ${k===v?'selected':''}>${ICON_NOMES[k]}</option>`).join('')}</select>`;
+  openM(mh('Slot de desconto')+`<div style="display:flex;flex-direction:column;gap:14px" id="slotform">
+   <label style="display:flex;gap:8px;align-items:center;font-weight:600"><input type="checkbox" data-f="ativo" ${d.ativo?'checked':''}> Slot ligado</label>
+   <div class="fld"><label>Cada cliente pode girar 1 vez a cada (dias)</label><input type="number" min="0" max="90" data-f="limiteDias" value="${+d.limiteDias||0}"></div>
+   ${(d.maquinas||[]).map((m,mi)=>{const tot=(m.itens||[]).reduce((x,i)=>x+(+i.chance||0),0);return `<div class="panel" style="padding:12px;gap:10px">
+     <div class="frow" style="grid-template-columns:1fr auto"><div class="fld"><label>Nome</label><input data-f="nome" data-m="${mi}" value="${esc(m.nome)}"></div><button class="btn sm ghost danger" style="align-self:end" data-a="slot-delm" data-m="${mi}">Remover</button></div>
+     <div class="fld"><label>Aparece quando o cliente agenda</label><div class="btns">${S.services.map(s=>`<label class="btn sm" style="gap:6px"><input type="checkbox" data-f="servico" data-m="${mi}" value="${s.id}" ${(m.servicos||[]).includes(s.id)?'checked':''}> ${esc(s.name)}</label>`).join('')}</div></div>
+     <div class="fld"><label>Símbolos e prêmios (ganha quando saem 3 iguais)</label>
+     ${(m.itens||[]).map((it,ii)=>`<div style="border:1px solid var(--line);border-radius:10px;padding:8px;margin-top:8px;display:grid;grid-template-columns:34px 1fr 1fr auto;gap:6px 8px;align-items:center">
+        <span style="color:var(--accent);display:inline-flex">${icoSvg(it.icone,28)}</span>${icoSel(mi,ii,it.icone)}
+        <select data-f="tipo" data-m="${mi}" data-i="${ii}"><option value="desconto" ${it.tipo==='desconto'?'selected':''}>Desconto</option><option value="brinde" ${it.tipo==='brinde'?'selected':''}>Brinde</option></select>
+        <button class="btn sm ghost danger" data-a="slot-deli" data-m="${mi}" data-i="${ii}" aria-label="Remover">✕</button>
+        <span></span>
+        <label style="font-size:12px;font-weight:700;color:var(--muted);display:flex;flex-direction:column;gap:3px">${it.tipo==='desconto'?'Desconto (%)':'Brinde'}${it.tipo==='desconto'?`<input type="number" min="1" max="100" data-f="valor" data-m="${mi}" data-i="${ii}" value="${+it.valor||0}">`:`<input data-f="texto" data-m="${mi}" data-i="${ii}" value="${esc(it.texto||'')}">`}</label>
+        <label style="font-size:12px;font-weight:700;color:var(--muted);display:flex;flex-direction:column;gap:3px">Chance de sair (%)<input type="number" min="0" max="100" step="0.5" data-f="chance" data-m="${mi}" data-i="${ii}" value="${+it.chance||0}"></label>
+        <span></span></div>`).join('')}
+     <div class="btns" style="margin-top:8px;align-items:center"><button class="btn sm" data-a="slot-addi" data-m="${mi}">+ Símbolo</button><span class="sub" style="font-size:12.5px">Chance total de ganhar algo: <b style="color:${tot>100?'var(--bad)':'inherit'}">${tot}%</b></span></div></div></div>`}).join('')}
+   <button class="btn sm" data-a="slot-addm" style="align-self:flex-start">+ Outro slot</button>
+   <p id="slerr" style="color:var(--bad);margin:0;font-size:13.5px" hidden></p>
+   <div class="btns" style="justify-content:flex-end"><button class="btn" data-a="slot-cancel">Voltar</button><button class="btn pri" data-a="slot-save">Salvar slot</button></div></div>`);
+}
+document.addEventListener('change',e=>{
+  const el=e.target;if(!SLOTD||!el.closest||!el.closest('#slotform'))return;
+  const f=el.dataset.f,m=el.dataset.m!=null?SLOTD.maquinas[+el.dataset.m]:null,it=m&&el.dataset.i!=null?m.itens[+el.dataset.i]:null;
+  if(f==='ativo')SLOTD.ativo=el.checked;
+  else if(f==='limiteDias')SLOTD.limiteDias=Math.max(0,Math.round(+el.value||0));
+  else if(f==='nome')m.nome=el.value.trim();
+  else if(f==='servico'){m.servicos=m.servicos||[];if(el.checked){if(!m.servicos.includes(el.value))m.servicos.push(el.value)}else m.servicos=m.servicos.filter(x=>x!==el.value)}
+  else if(it){if(f==='valor'||f==='chance')it[f]=Math.max(0,Math.min(100,+el.value||0));else it[f]=el.value;if(f==='tipo'&&el.value==='brinde'&&!it.texto)it.texto='Brinde'}
+  if(['icone','tipo','chance'].includes(f))slotModal();
+});
+function slotAcao(a,el){
+  const mi=+el.dataset.m,ii=+el.dataset.i;
+  if(a==='slot-edit'){SLOTD=null;slotModal()}
+  if(a==='slot-addm'){SLOTD.maquinas.push({id:'m'+uid(),nome:'Novo slot',servicos:[],itens:[{id:'i'+uid(),icone:'estrela',tipo:'desconto',valor:10,chance:10}]});slotModal()}
+  if(a==='slot-delm'){SLOTD.maquinas.splice(mi,1);slotModal()}
+  if(a==='slot-addi'){SLOTD.maquinas[mi].itens.push({id:'i'+uid(),icone:'estrela',tipo:'desconto',valor:5,chance:5});slotModal()}
+  if(a==='slot-deli'){SLOTD.maquinas[mi].itens.splice(ii,1);slotModal()}
+  if(a==='slot-cancel'){SLOTD=null;closeM()}
+  if(a==='slot-save'){const er=md.querySelector('#slerr');
+    for(const m of SLOTD.maquinas){const tot=m.itens.reduce((x,i)=>x+(+i.chance||0),0);
+      if(!m.nome){er.textContent='Dê um nome a cada slot.';er.hidden=false;return}
+      if(tot>100){er.textContent=`No "${m.nome}" as chances somam ${tot}%. O máximo é 100%.`;er.hidden=false;return}
+      if(m.itens.length<2){er.textContent=`Coloque pelo menos 2 símbolos no "${m.nome}".`;er.hidden=false;return}}
+    S.slot=SLOTD;SLOTD=null;save();closeM();render();toast('Slot salvo')}
+}
+/* animação para o cliente */
+let SLOTEL=null,SLOTFOR=null;
+function slotMount(){
+  const box=document.getElementById('slotbox');if(!box)return;
+  const dn=W.done;if(!dn||!dn.id||!SB)return;
+  if(SLOTFOR!==dn.id){SLOTFOR=dn.id;SLOTEL=document.createElement('div');SLOTEL.className='slotwrap';slotRun(dn,SLOTEL)}
+  if(SLOTEL&&SLOTEL.parentNode!==box)box.appendChild(SLOTEL);
+}
+async function slotRun(dn,el){
+  let r=null;
+  for(let t=0;t<3&&!r;t++){try{const {data,error}=await SB.rpc('resultado_slot',{p_appt:dn.id});if(!error)r=data}catch(e){}if(!r)await new Promise(ok=>setTimeout(ok,600))}
+  if(!r){el.remove();return}
+  if(r.bloqueado){el.innerHTML=`<p class="sub" style="margin:8px 0 0;font-size:13px">🎰 Você já girou o slot esta semana. Próximo giro a partir de ${short(r.proximo)}.</p>`;return}
+  const sb=r.simbolos||[],pool=[...new Set(((S.slot&&S.slot.maquinas)||[]).flatMap(m=>(m.itens||[]).map(i=>i.icone)).concat(sb))];
+  const N=18;
+  el.innerHTML=`<div class="slotm"><p class="slott">${esc(r.maquina||'Slot')}</p><div class="reels">${sb.map((s,i)=>`<div class="reel"><div class="strip" style="transition-duration:${1.4+i*0.55}s">${Array.from({length:N},(_,k)=>`<div class="cell">${icoSvg(k===N-1?s:pool[Math.floor(Math.random()*pool.length)])}</div>`).join('')}</div></div>`).join('')}</div><p class="slotmsg" aria-live="polite"></p></div>`;
+  requestAnimationFrame(()=>requestAnimationFrame(()=>el.querySelectorAll('.strip').forEach(s=>s.style.transform=`translateY(-${(N-1)*76}px)`)));
+  setTimeout(()=>{
+    const m=el.querySelector('.slotmsg');const serv=SV(dn.serviceId);
+    if(r.ganhou){el.querySelector('.slotm').classList.add('win');
+      m.innerHTML=r.tipo==='desconto'?`🎉 <b>Ganhou ${+r.valor}% de desconto!</b><br>Seu ${esc(serv?.name||'serviço')} sai por <b>${brl(+r.price||0)}</b> <s style="opacity:.6">${brl(+r.precoOriginal||0)}</s>`:`🎉 <b>Ganhou: ${esc(r.texto||'brinde')}!</b><br>Retire na barbearia no dia do seu horário.`}
+    else m.innerHTML=`Não foi dessa vez! 😅<br><span class="sub" style="font-size:13px">Você pode girar de novo a partir de ${short(addDays(TODAY,+(S.slot&&S.slot.limiteDias)||7))}.</span>`;
+  },1400+2*550+250);
+}
+
+
+/* ---------- Atendimento sem agendamento ---------- */
+function avulsoModal(){
+  const prods=S.products.filter(p=>+p.price>0);
+  const bs=visBarbers();
+  openM(mh('Atendimento sem agendamento','Cliente chegou na hora? Registre tudo o que ele fez e comprou.')+`<form id="avform" style="display:flex;flex-direction:column;gap:12px">
+   <div class="fld"><label for="av_c">Cliente</label><select id="av_c"><option value="">Cliente sem cadastro</option><option value="__novo">+ Cadastrar cliente novo</option>${S.clients.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select></div>
+   <div class="frow" id="av_new" hidden><div class="fld"><label for="av_n">Nome</label><input id="av_n"></div><div class="fld"><label for="av_p">WhatsApp</label><input id="av_p" inputmode="tel"></div></div>
+   ${bs.length>1?`<div class="fld"><label for="av_b">Barbeiro</label><select id="av_b">${bs.map(b=>`<option value="${b.id}" ${b.id===user?'selected':''}>${esc(b.name)}</option>`).join('')}</select></div>`:''}
+   <div class="fld"><label>Serviços feitos</label><div class="btns">${S.services.map(s=>`<label class="btn sm" style="gap:6px"><input type="checkbox" class="av_s" value="${s.id}"> ${esc(s.name)} · ${brl(s.price)}</label>`).join('')}</div></div>
+   ${prods.length?`<div class="fld"><label>Produtos comprados</label>${prods.map(p=>`<div class="row" style="padding:6px 0"><div class="grow"><div class="t">${esc(p.name)}</div><div class="s">${brl(p.price)} · tem ${p.qty}</div></div><input type="number" class="av_q" data-id="${p.id}" min="0" max="${p.qty}" value="0" style="width:70px;border:1px solid var(--line);background:var(--surface-2);border-radius:8px;padding:7px"></div>`).join('')}</div>`:''}
+   <div class="frow"><div class="fld"><label for="av_pay">Pagamento</label><select id="av_pay">${PAYS.map(x=>`<option>${x}</option>`).join('')}</select></div><div class="fld"><label for="av_d">Desconto (R$)</label><input id="av_d" type="number" min="0" step="any" value="0"></div></div>
+   <div class="total"><span class="sub" style="margin:0">Total</span><b id="av_tot">${brl(0)}</b></div>
+   <p id="averr" style="color:var(--bad);margin:0;font-size:13.5px" hidden></p>
+   <div class="btns" style="justify-content:flex-end"><button type="button" class="btn" data-a="close">Voltar</button><button class="btn pri" type="submit">Registrar e receber</button></div></form>`);
+  const f=md.querySelector('#avform');
+  const calc=()=>{const sv=[...f.querySelectorAll('.av_s:checked')].reduce((x,el)=>x+(+SV(el.value).price||0),0);
+    const pr=[...f.querySelectorAll('.av_q')].reduce((x,el)=>x+Math.max(0,Math.floor(+el.value||0))*(+S.products.find(p=>p.id===el.dataset.id).price||0),0);
+    const d=Math.max(0,+f.querySelector('#av_d').value||0);f.querySelector('#av_tot').textContent=brl(Math.max(0,sv+pr-d));return{sv,pr,d}};
+  f.addEventListener('input',calc);f.addEventListener('change',e=>{if(e.target.id==='av_c')f.querySelector('#av_new').hidden=e.target.value!=='__novo';calc()});
+  f.addEventListener('submit',e=>{e.preventDefault();const er=f.querySelector('#averr');const fail=t=>{er.textContent=t;er.hidden=false};
+    const svs=[...f.querySelectorAll('.av_s:checked')].map(el=>SV(el.value));
+    const its=[...f.querySelectorAll('.av_q')].map(el=>({p:S.products.find(p=>p.id===el.dataset.id),n:Math.max(0,Math.floor(+el.value||0))})).filter(x=>x.n>0);
+    if(!svs.length&&!its.length)return fail('Marque pelo menos um serviço ou produto.');
+    for(const x of its)if(x.n>x.p.qty)return fail(`Só tem ${x.p.qty} de ${x.p.name} no estoque.`);
+    let cid=f.querySelector('#av_c').value;
+    if(cid==='__novo'){const n=f.querySelector('#av_n').value.trim(),ph=f.querySelector('#av_p').value.trim();if(n.length<2)return fail('Informe o nome do cliente.');cid=findOrCreateClient(n,ph||'—').id}
+    if(!cid){let av=S.clients.find(c=>c.id==='avulso');if(!av){av={id:'avulso',name:'Cliente sem cadastro',phone:'—',birth:'—'};S.clients.push(av)}cid='avulso'}
+    const bid=(f.querySelector('#av_b')||{}).value||user;const pay=f.querySelector('#av_pay').value;
+    let desc=Math.max(0,+f.querySelector('#av_d').value||0);
+    const now=new Date(),hm=pad(now.getHours())+':'+pad(now.getMinutes()-now.getMinutes()%5);
+    const cn=(C(cid)||{name:''}).name.split(' ')[0];
+    svs.forEach(s=>{let price=+s.price||0;const d=Math.min(desc,price);price=+(price-d).toFixed(2);desc-=d;
+      const ap={id:uid(),date:TODAY,time:hm,barberId:bid,serviceId:s.id,clientId:cid,status:'concluido',price,pay,origin:'avulso'};S.appts.push(ap);
+      if(price>0)S.tx.push({id:uid(),date:TODAY,type:'in',cat:'Serviço',desc:s.name+' · '+cn,value:price,method:pay,barberId:bid,apptId:ap.id})});
+    its.forEach(x=>{x.p.qty-=x.n;for(let i=0;i<x.n;i++){let v=+x.p.price||0;const d=Math.min(desc,v);v=+(v-d).toFixed(2);desc-=d;
+      if(v>0)S.tx.push({id:uid(),date:TODAY,type:'in',cat:'Produto',desc:x.p.name+' · '+cn,value:v,method:pay,barberId:bid})}});
+    save();closeM();render();toast('Atendimento registrado · '+f.querySelector('#av_tot').textContent);});
+}
+
+/* ---------- Dar baixa (horários que já passaram) ---------- */
+function pendBaixa(){
+  const nm=nowMin();
+  return S.appts.filter(a=>(a.status==='agendado'||a.status==='confirmado')&&(isDono()||a.barberId===user)&&(a.date<TODAY||(a.date===TODAY&&toMin(a.time)+((SV(a.serviceId)||{dur:30}).dur)<=nm)))
+    .sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+}
+function painelComBaixa(){
+  const l=pendBaixa();
+  const box=l.length?`<section class="panel" style="border-color:var(--warn)"><div class="ph"><h2 style="color:var(--warn)">Precisa dar baixa (${l.length})</h2><button class="btn sm" data-a="avulso">+ Sem agendamento</button></div><p class="sub" style="margin:0;font-size:13px">Esses horários já passaram. O cliente veio e pagou, ou faltou?</p><div class="list">${l.slice(0,12).map(a=>{const c=C(a.clientId)||{name:'Cliente'},s=SV(a.serviceId)||{name:'Serviço'};return `<div class="row"><span class="time">${a.date===TODAY?'':short(a.date)+' '}${a.time}</span><div class="grow"><div class="t">${esc(c.name)}</div><div class="s">${esc(s.name)}${a.plano?' · plano':' · '+brl(a.price)}${isDono()?' · '+esc((B(a.barberId)||{name:''}).name):''}</div></div><div class="btns" style="flex-wrap:nowrap"><button class="btn sm pri" data-a="appt" data-id="${a.id}">Veio e pagou</button><button class="btn sm danger" data-a="status" data-s="faltou" data-id="${a.id}">Faltou</button></div></div>`}).join('')}</div></section>`
+   :`<section class="panel"><div class="ph"><h2>Atendimentos</h2><button class="btn sm" data-a="avulso">+ Sem agendamento</button></div><p class="sub" style="margin:0;font-size:13px">Tudo em dia: nenhum horário esperando baixa.</p></section>`;
+  const html=painel();const i=html.indexOf('<div class="kpis">');
+  return i>=0?html.slice(0,i)+box+html.slice(i):box+html;
+}
+
+/* ---------- Relatório do mês ---------- */
+let REL=null;
+
+function relDados(){
+  if(!REL){const d=new Date();REL={y:d.getFullYear(),m:d.getMonth()+1}}
+  const ini=REL.y+'-'+pad(REL.m)+'-01',fim=REL.y+'-'+pad(REL.m)+'-31';
+  const tx=S.tx.filter(t=>t.date>=ini&&t.date<=fim).sort((a,b)=>a.date.localeCompare(b.date));
+  const ent=tx.filter(t=>t.type==='in'),sai=tx.filter(t=>t.type==='out');
+  const soma=a=>a.reduce((x,t)=>x+(+t.value||0),0);
+  const porCat={};ent.forEach(t=>porCat[t.cat||'Outros']=(porCat[t.cat||'Outros']||0)+(+t.value||0));
+  const despCat={};sai.forEach(t=>despCat[t.cat||'Outros']=(despCat[t.cat||'Outros']||0)+(+t.value||0));
+  const porPag={};ent.forEach(t=>porPag[t.method||'—']=(porPag[t.method||'—']||0)+(+t.value||0));
+  const ap=S.appts.filter(a=>a.date>=ini&&a.date<=fim);
+  const conc=ap.filter(a=>a.status==='concluido');
+  const com=S.barbers.map(b=>{const d=conc.filter(a=>a.barberId===b.id);const v=d.reduce((x,a)=>x+(+a.price||0),0);return{b,n:d.length,v,c:+(v*(+b.comm||0)/100).toFixed(2)}}).filter(x=>x.n);
+  const totCom=com.reduce((x,c)=>x+c.c,0);
+  return{ini,fim,tx,ent,sai,soma,porCat,despCat,porPag,ap,conc,com,totCom,
+    faltas:ap.filter(a=>a.status==='faltou').length,avulsos:conc.filter(a=>a.origin==='avulso').length,online:conc.filter(a=>a.origin==='online').length,
+    abertos:ap.filter(a=>(a.status==='agendado'||a.status==='confirmado')&&a.date<TODAY).length};
+}
+function relatorio(){
+  const r=relDados(),E=r.soma(r.ent),D=r.soma(r.sai),L=E-D-r.totCom;
+  const tab=(rows,cols)=>`<div class="tbl"><table><tbody>${rows.map(x=>`<tr>${x.map((c,i)=>`<td class="${i===x.length-1?'r num':''}">${c}</td>`).join('')}</tr>`).join('')||`<tr><td class="empty" colspan="${cols}">Nada no mês.</td></tr>`}</tbody></table></div>`;
+  const anos=[];for(let y=new Date().getFullYear();y>=2024;y--)anos.push(y);
+  return finTabs()+head('Relatório do mês',`${MESES[REL.m-1].toLowerCase()} de ${REL.y} · para conferência e para o contador`,`<div class="btns"><div class="pfnav"><select id="rel_m" aria-label="Mês">${MESES.map((n,i)=>`<option value="${i+1}" ${i+1===REL.m?'selected':''}>${n}</option>`).join('')}</select><select id="rel_y" aria-label="Ano">${anos.map(y=>`<option ${y===REL.y?'selected':''}>${y}</option>`).join('')}</select></div><button class="btn" data-a="rel-csv">⬇ Baixar planilha</button><button class="btn pri" data-a="rel-print">🖨 Imprimir / PDF</button></div>`)+`
+  ${r.abertos?`<p style="margin:0;color:var(--warn);font-weight:600">Atenção: ${r.abertos} horário(s) desse mês ainda sem baixa (veio/faltou). Dê baixa no Painel para o relatório ficar certo.</p>`:''}
+  <div class="kpis"><div class="kpi"><span class="l">Faturamento</span><span class="v" style="color:var(--ok)">${brl(E)}</span><span class="h">${r.ent.length} entradas</span></div>
+   <div class="kpi"><span class="l">Despesas</span><span class="v" style="color:var(--bad)">${brl(D)}</span><span class="h">${r.sai.length} lançamentos</span></div>
+   <div class="kpi"><span class="l">Comissões</span><span class="v">${brl(r.totCom)}</span><span class="h">dos barbeiros</span></div>
+   <div class="kpi"><span class="l">Resultado</span><span class="v">${brl(L)}</span><span class="h">faturamento − despesas − comissões</span></div></div>
+  <div class="grid2"><section class="panel"><h2>Faturamento por tipo</h2>${tab(Object.entries(r.porCat).sort((a,b)=>b[1]-a[1]).map(([k,v])=>[esc(k),brl(v)]),2)}</section>
+   <section class="panel"><h2>Por forma de pagamento</h2>${tab(Object.entries(r.porPag).sort((a,b)=>b[1]-a[1]).map(([k,v])=>[esc(k),brl(v)]),2)}</section></div>
+  <div class="grid2"><section class="panel"><h2>Despesas por categoria</h2>${tab(Object.entries(r.despCat).sort((a,b)=>b[1]-a[1]).map(([k,v])=>[esc(k),brl(v)]),2)}</section>
+   <section class="panel"><h2>Atendimentos</h2>${tab([['Concluídos',r.conc.length],['Agendados pelo site',r.online],['Sem agendamento',r.avulsos],['Faltas',r.faltas]],2)}</section></div>
+  <section class="panel"><h2>Comissões por barbeiro</h2>${tab(r.com.map(x=>[`<b>${esc(x.b.name)}</b>`,x.n+' atend.',brl(x.v),(+x.b.comm||0)+'%',brl(x.c)]),5)}</section>
+  <section class="panel" style="padding:12px 6px"><h2 style="padding:0 10px">Todos os lançamentos do mês</h2><div class="tbl"><table><thead><tr><th>Data</th><th>Descrição</th><th>Tipo</th><th class="hide-sm">Forma</th><th class="r">Valor</th></tr></thead><tbody>
+   ${r.tx.map(t=>`<tr><td class="num">${short(t.date)}</td><td>${esc(t.desc)}</td><td>${esc(t.cat||'')}</td><td class="hide-sm">${esc(t.method||'')}</td><td class="r num" style="color:${t.type==='in'?'var(--ok)':'var(--bad)'};font-weight:700">${t.type==='in'?'+':'−'} ${brl(+t.value||0)}</td></tr>`).join('')||'<tr><td colspan="5" class="empty">Nenhum lançamento.</td></tr>'}
+  </tbody></table></div></section>`;
+}
+function relCSV(){
+  const r=relDados(),n=v=>(+v||0).toFixed(2).replace('.',','),q=s=>'"'+String(s??'').replace(/"/g,'""')+'"';
+  const L=[];const add=(...c)=>L.push(c.join(';'));
+  add(q('Barbearia do Maycão'),q(`Relatório de ${MESES[REL.m-1].toLowerCase()} de ${REL.y}`));add('');
+  add(q('RESUMO'));add(q('Faturamento'),n(r.soma(r.ent)));add(q('Despesas'),n(r.soma(r.sai)));add(q('Comissões'),n(r.totCom));add(q('Resultado'),n(r.soma(r.ent)-r.soma(r.sai)-r.totCom));add('');
+  add(q('FATURAMENTO POR TIPO'));Object.entries(r.porCat).forEach(([k,v])=>add(q(k),n(v)));add('');
+  add(q('POR FORMA DE PAGAMENTO'));Object.entries(r.porPag).forEach(([k,v])=>add(q(k),n(v)));add('');
+  add(q('DESPESAS POR CATEGORIA'));Object.entries(r.despCat).forEach(([k,v])=>add(q(k),n(v)));add('');
+  add(q('COMISSÕES'));add(q('Barbeiro'),q('Atendimentos'),q('Faturado'),q('%'),q('Comissão'));r.com.forEach(x=>add(q(x.b.name),x.n,n(x.v),x.b.comm||0,n(x.c)));add('');
+  add(q('LANÇAMENTOS'));add(q('Data'),q('Tipo'),q('Categoria'),q('Descrição'),q('Forma'),q('Valor'));
+  r.tx.forEach(t=>add(q(t.date.split('-').reverse().join('/')),q(t.type==='in'?'Entrada':'Saída'),q(t.cat||''),q(t.desc||''),q(t.method||''),(t.type==='in'?'':'-')+n(t.value)));
+  const blob=new Blob(['﻿'+L.join('\r\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`relatorio-maycao-${REL.y}-${pad(REL.m)}.csv`;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);
+  toast('Planilha baixada · abre no Excel ou Google Planilhas');
+}
+
 /* ---------- Servidor (Supabase) ---------- */
 const CFG=window.MAYCAO_CONFIG||{};
 const SB=(window.supabase&&CFG.SUPABASE_URL&&/^https:\/\//.test(CFG.SUPABASE_URL)&&CFG.SUPABASE_ANON_KEY&&!/COLE/.test(CFG.SUPABASE_ANON_KEY))
   ?window.supabase.createClient(CFG.SUPABASE_URL,CFG.SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true}}):null;
-const COLS=['appts','clients','tx','products','payouts'];
+const COLS=['appts','clients','tx','products','payouts','subs'];
 const PUBB=['id','name','slug','color','off'];
 let LOADERR='';
 const comTempo=(pr,ms)=>Promise.race([pr,new Promise((_,rj)=>setTimeout(()=>rj(new Error('tempo')),ms))]);
@@ -804,14 +1192,14 @@ const setDonoPin=p=>{donoPin=p;try{p?sessionStorage.setItem('maycao-dpin',p):ses
 function syncAppt(){} function syncCfg(){}
 function setSync(on){setOnline(on)}
 function setOnline(on){const t=document.getElementById('syncTag');if(t){t.className='sync '+(on?'on':'off');t.textContent=on?'Online':'Sem internet · salvo no aparelho'}}
-function pubCfg(){return{barbers:S.barbers.map(b=>{const o={};PUBB.forEach(k=>{if(b[k]!==undefined&&b[k]!==false)o[k]=b[k]});return o}),services:S.services,hours:S.hours,info:S.info}}
+function pubCfg(){return{barbers:S.barbers.map(b=>{const o={};PUBB.forEach(k=>{if(b[k]!==undefined&&b[k]!==false)o[k]=b[k]});return o}),services:S.services,hours:S.hours,info:S.info,plans:S.plans||[],slot:S.slot||{ativo:false,limiteDias:7,maquinas:[]}}}
 function privCfg(){const comm={};S.barbers.forEach(b=>comm[b.id]=+b.comm||0);return{comm}}
 const cfgKey=()=>JSON.stringify([pubCfg(),privCfg()]);
 function applyCfg(pub,priv,status){
   if(pub&&Array.isArray(pub.barbers)){
     const comm=(priv&&priv.comm)||{},st={},old={};(status||[]).forEach(r=>st[r.barber_id]=r.troca_obrigatoria);S.barbers.forEach(b=>old[b.id]=b);
     S.barbers=pub.barbers.map(b=>({...b,comm:comm[b.id]!=null?+comm[b.id]:(old[b.id]?old[b.id].comm||0:0),mustChange:st[b.id]!=null?!!st[b.id]:!!(old[b.id]&&old[b.id].mustChange)}));
-    S.services=pub.services||[];if(pub.hours)S.hours=pub.hours;S.info={...DEF_INFO,...(pub.info||{})};
+    S.services=pub.services||[];S.plans=Array.isArray(pub.plans)?pub.plans:[];S.slot=pub.slot||S.slot||null;if(pub.hours)S.hours=pub.hours;S.info={...DEF_INFO,...(pub.info||{})};
   }
   CFGSNAP=cfgKey();
 }
@@ -893,7 +1281,7 @@ function stamps(v){const f=v%10;const free=v>0&&f===0;return free?'<span class="
 /* ---------- Financeiro ---------- */
 let per='mes';
 let finTab='caixa';
-const finTabs=()=>`<div class="seg fintabs">${[['caixa','Caixa'],['perf','Performance'],['com','Comissões']].map(([k,l])=>`<button data-a="fintab" data-t="${k}" aria-pressed="${finTab===k}">${l}</button>`).join('')}</div>`;
+const finTabs=()=>`<div class="seg fintabs">${[['caixa','Caixa'],['rel','Relatório do mês'],['perf','Performance'],['com','Comissões']].map(([k,l])=>`<button data-a="fintab" data-t="${k}" aria-pressed="${finTab===k}">${l}</button>`).join('')}</div>`;
 const wkLabel=wk=>wk===CUR_WK?'Esta semana':wk===addDays(CUR_WK,-7)?'Semana passada':wk===addDays(CUR_WK,7)?'Semana que vem':'Semana de '+short(wk);
 const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 let PF={type:'mes',y:+TODAY.slice(0,4),m:+TODAY.slice(5,7)-1,wk:CUR_WK};
@@ -962,6 +1350,7 @@ function comissoes(){
 }
 function financeiro(){
   if(!isDono())return meusGanhos();
+  if(finTab==='rel')return relatorio();
   if(finTab==='perf')return performance();
   if(finTab==='com')return comissoes();
   const from=per==='hoje'?TODAY:per==='semana'?addDays(TODAY,-6):TODAY.slice(0,8)+'01';
@@ -1068,7 +1457,7 @@ function apptModal(id){
   const open=a.status==='agendado'||a.status==='confirmado';
   const msg=`Fala, ${c.name.split(' ')[0]}! Passando pra lembrar do seu horário na Barbearia do Maycão: ${s.name} com ${b.name}, ${fmtDay(a.date)} às ${a.time}. Responde SIM pra confirmar ou me avisa se precisar remarcar. 💈`;
   openM(mh(esc(c.name),`<span class="pill p-${a.status}">${stLabel(a.status)}</span>`)+`
-   <dl class="kv"><dt>Serviço</dt><dd>${esc(s.name)} · ${brl(a.price)}</dd><dt>Quando</dt><dd>${fmtDay(a.date)}, ${a.time}</dd><dt>Barbeiro</dt><dd>${esc(b.name)}</dd><dt>Origem</dt><dd>${a.origin==='online'?'Agendou pelo site':'Marcado no balcão'}</dd><dt>Fidelidade</dt><dd>${stamps(st.visits)}</dd>${a.pay?`<dt>Pagamento</dt><dd>${a.pay}</dd>`:''}</dl>
+   <dl class="kv">${a.slot&&a.slot.ganhou?`<dt>Slot 🎰</dt><dd style="color:var(--ok)">${a.slot.tipo==='desconto'?`${a.slot.valor}% de desconto (era ${brl(+a.slot.precoOriginal||0)})`:'Brinde: '+esc(a.slot.texto||'')}</dd>`:''}<dt>Serviço</dt><dd>${esc(s.name)} · ${a.plano?'pelo plano'+(()=>{const sb=S.subs.find(x=>x.id===a.subId);return sb&&subSit(sb)==='pendente'?' <span class="pill p-confirmado">mensalidade pendente</span>':''})():brl(a.price)}</dd><dt>Quando</dt><dd>${fmtDay(a.date)}, ${a.time}</dd><dt>Barbeiro</dt><dd>${esc(b.name)}</dd><dt>Origem</dt><dd>${a.origin==='online'?'Agendou pelo site':a.origin==='avulso'?'Chegou sem agendamento':'Marcado no balcão'}</dd><dt>Fidelidade</dt><dd>${stamps(st.visits)}</dd>${a.pay?`<dt>Pagamento</dt><dd>${a.pay}</dd>`:''}</dl>
    ${open?`<div class="fld"><label>Lembrete no WhatsApp</label><div class="msg" id="wamsg">${esc(msg)}</div><div class="btns"><button class="btn sm" data-a="copy">Copiar mensagem</button><a class="btn sm" target="_blank" rel="noopener" href="https://wa.me/55${c.phone.replace(/\D/g,'')}?text=${encodeURIComponent(msg)}">Abrir WhatsApp</a></div></div>
    <div class="fld"><label for="pay">Concluir atendimento: forma de pagamento</label><div class="frow" style="grid-template-columns:1fr auto"><select id="pay">${PAYS.map(p=>`<option>${p}</option>`).join('')}</select><button class="btn pri" data-a="finish" data-id="${a.id}">Concluir</button></div></div>
    <div class="btns">${a.status==='agendado'?`<button class="btn" data-a="status" data-s="confirmado" data-id="${a.id}">Marcar confirmado</button>`:''}<button class="btn" data-a="edit-appt" data-id="${a.id}">Remarcar</button><button class="btn danger" data-a="status" data-s="faltou" data-id="${a.id}">Faltou</button><button class="btn danger" data-a="status" data-s="cancelado" data-id="${a.id}">Cancelar</button></div>`
@@ -1112,7 +1501,8 @@ function clientModal(id){
   const favB=(()=>{const m={};st.done.forEach(a=>m[a.barberId]=(m[a.barberId]||0)+1);const k=Object.keys(m).sort((a,b)=>m[b]-m[a])[0];return k?B(k).name:'—'})();
   const hist=S.appts.filter(a=>a.clientId===id).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time)).slice(0,8);
   openM(mh(esc(c.name),esc(c.phone))+`<dl class="kv"><dt>Visitas</dt><dd>${st.visits}</dd><dt>Gasto total</dt><dd>${brl(st.spent)}</dd><dt>Sempre pede</dt><dd>${esc(fav)} com ${esc(favB)}</dd><dt>Aniversário</dt><dd>${esc(c.birth)}</dd><dt>Fidelidade</dt><dd>${stamps(st.visits)} <span class="sub" style="font-size:12px">${st.visits%10||(st.visits?10:0)}/10</span></dd></dl>
-   <div class="btns"><button class="btn pri" data-a="new-for" data-id="${c.id}">Agendar</button><a class="btn" target="_blank" rel="noopener" href="https://wa.me/55${c.phone.replace(/\D/g,'')}">WhatsApp</a></div>
+   ${(()=>{const sb=subDoCliente(c.id);return sb?`<div class="row" style="cursor:pointer;border:1px solid var(--line);border-radius:8px;padding:8px 10px" data-a="sub" data-id="${sb.id}"><div class="grow"><div class="t">${esc(sb.planName||'Plano')}</div><div class="s">${subSit(sb)==='ativo'?'vence '+short(sb.fim):subSit(sb)==='vencido'?'venceu '+short(sb.fim):'aguardando pagamento'}</div></div><span class="pill ${SITP[subSit(sb)]}">${SITL[subSit(sb)]}</span></div>`:''})()}
+   <div class="btns"><button class="btn pri" data-a="new-for" data-id="${c.id}">Agendar</button><button class="btn" data-a="cli-reset" data-id="${c.id}">Liberar nova senha do app</button><a class="btn" target="_blank" rel="noopener" href="https://wa.me/55${c.phone.replace(/\D/g,'')}">WhatsApp</a></div>
    <div><h2 style="margin-bottom:4px">Histórico</h2><div class="list">${hist.map(a=>apptRow(a,true)).join('')||'<p class="empty">Ainda sem atendimentos.</p>'}</div></div>`);
 }
 function formModal(title,fields,submitLabel,onOk){
@@ -1123,7 +1513,7 @@ function formModal(title,fields,submitLabel,onOk){
 
 /* ---------- Ações ---------- */
 document.addEventListener('click',e=>{
-  if(e.target===ov){closeM();return}
+  if(e.target===ov){SLOTD=null;closeM();return}
   const el=e.target.closest('[data-a]');if(!el)return;
   const a=el.dataset.a,id=el.dataset.id;
   const P=id&&S.products.find(p=>p.id===id);
@@ -1133,6 +1523,25 @@ document.addEventListener('click',e=>{
     case 'install':if(instEvt){instEvt.prompt();instEvt=null;render()}break;
     case 'device-out':deviceSignOut();break;
     case 'retry-load':carregar();break;
+    case 'avulso':avulsoModal();break;
+    case 'rel-csv':relCSV();break;
+    case 'rel-print':window.print();break;
+    case 'slot-edit':case 'slot-addm':case 'slot-delm':case 'slot-addi':case 'slot-deli':case 'slot-cancel':case 'slot-save':slotAcao(a,el);break;
+    case 'c-mode':CMODE=el.dataset.m;render();break;
+    case 'c-out':if(SB&&CT)SB.rpc('cliente_sair',{p_token:CT}).then(()=>{},()=>{});setCT(null);CP=null;CMODE='entrar';render();toast('Você saiu da conta');break;
+    case 'c-cancel':if(CCONF!==id){CCONF=id;render();break}CCONF=null;SB.rpc('cliente_cancelar',{p_token:CT,p_appt:id}).then(async({data,error})=>{if(error||data&&data.erro){toast('Não deu para cancelar. Fale com a barbearia.');return}toast('Horário cancelado');await loadOcupados();loadConta()});break;
+    case 'c-plan':if(CBUSY)break;CBUSY=true;SB.rpc('cliente_escolher_plano',{p_token:CT,p_plano:id}).then(async({data,error})=>{CBUSY=false;if(error){toast('Sem internet. Tente de novo.');return}
+      if(data&&data.erro){toast(data.erro==='ativo'?'Seu plano ainda está em dia.':data.erro==='pendente_em_uso'?'Você já usou esse plano. Pague na barbearia antes de trocar.':'Não deu para escolher esse plano.');return}
+      CPLAN=null;await loadConta();toast('Plano escolhido! Pague na barbearia para ativar.')});break;
+    case 'sub':subModal(id);break;
+    case 'sub-pay':subPayModal(id);break;
+    case 'sub-pay-ok':{const s=S.subs.find(x=>x.id===id);pagarSub(s,md.querySelector('#spay').value);save();closeM();render();toast('Pagamento registrado · plano em dia até '+short(addDays(s.fim,-1)));break}
+    case 'sub-cancel':{const s=S.subs.find(x=>x.id===id);if(el.dataset.ok!=='1'){el.dataset.ok='1';el.textContent='Toque de novo para cancelar';break}s.status='cancelado';save();closeM();render();toast('Mensalidade cancelada');break}
+    case 'sub-new':subNewModal();break;
+    case 'plan-new':planModal();break;
+    case 'plan-edit':planModal(id);break;
+    case 'plan-del':{const p=PL(id);if(el.dataset.ok!=='1'){el.dataset.ok='1';el.textContent='Remover?';break}const emUso=S.subs.some(s=>s.planId===id&&['ativo','pendente'].includes(subSit(s)));if(emUso){p.off=true;toast('Tem clientes nesse plano: ele foi pausado em vez de removido')}else{S.plans=S.plans.filter(x=>x.id!==id);toast('Plano removido')}save();render();break}
+    case 'cli-reset':{const c=C(id);SB.rpc('cliente_resetar_senha',{p_fone:c.phone}).then(({data,error})=>{if(error){toast('Sem internet. Tente de novo.');return}toast(data?'Pronto: '+c.name.split(' ')[0]+' pode criar uma conta nova com o mesmo celular':'Esse cliente ainda não tem conta no app')});break}
     case 'day':{const d=+el.dataset.d;agDate=d===0?TODAY:addDays(agDate,d*(agView==='semana'?7:1));render();break}
     case 'agview':agView=el.dataset.m;render();break;
     case 'pick-login':loginB=id;render();setTimeout(()=>{const p=document.getElementById('pin');p&&p.focus()},0);break;
@@ -1159,8 +1568,8 @@ document.addEventListener('click',e=>{
     case 'edit-appt':newApptModal({id});break;
     case 'status':{const ap=S.appts.find(x=>x.id===id);ap.status=el.dataset.s;save();syncAppt(ap);closeM();render();toast(stLabel(el.dataset.s));break}
     case 'finish':{const ap=S.appts.find(x=>x.id===id),pay=md.querySelector('#pay').value;ap.status='concluido';ap.pay=pay;
-      S.tx.push({id:uid(),date:TODAY,type:'in',cat:'Serviço',desc:SV(ap.serviceId).name+' · '+C(ap.clientId).name.split(' ')[0],value:ap.price,method:pay,barberId:ap.barberId,apptId:ap.id});
-      save();syncAppt(ap);closeM();render();const v=clientStats(ap.clientId).visits;toast(v%10===0?'Concluído · cliente ganhou um corte grátis!':'Concluído · '+brl(ap.price)+' no caixa');break}
+      if(+ap.price>0)S.tx.push({id:uid(),date:TODAY,type:'in',cat:'Serviço',desc:SV(ap.serviceId).name+' · '+C(ap.clientId).name.split(' ')[0],value:ap.price,method:pay,barberId:ap.barberId,apptId:ap.id});
+      save();syncAppt(ap);closeM();render();const v=clientStats(ap.clientId).visits;toast(ap.plano?'Concluído · corte do plano':v%10===0?'Concluído · cliente ganhou um corte grátis!':'Concluído · '+brl(ap.price)+' no caixa');break}
     case 'copy':{const t=md.querySelector('#wamsg');const fallback=()=>{const r=document.createRange();r.selectNodeContents(t);const s=getSelection();s.removeAllRanges();s.addRange(r);toast('Mensagem selecionada, copie com o teclado')};
       try{navigator.clipboard.writeText(t.textContent).then(()=>toast('Mensagem copiada'),fallback)}catch(err){fallback()}break}
     case 'client':clientModal(id);break;
@@ -1217,7 +1626,33 @@ document.addEventListener('submit',e=>{
       if(user==='b1')setDonoPin(pin);
       if(data==='trocar'){tempPin=pin;B(user).mustChange=true}else{B(user).mustChange=false}
       view='painel';render();if(data!=='trocar')toast('Bem-vindo, '+B(user).name)});return}
+  if(e.target.id==='cform'){e.preventDefault();const er=document.getElementById('cerr'),bt=document.getElementById('csend');const fail=t=>{er.textContent=t;er.hidden=false;bt.disabled=false};
+    const fone=document.getElementById('c_fone').value.trim(),senha=document.getElementById('c_senha').value,nome=CMODE==='criar'?document.getElementById('c_nome').value.trim():'';
+    if(fone.replace(/\D/g,'').length<10)return fail('Coloque seu celular com DDD.');
+    if(!SB)return fail('Sem conexão com a barbearia agora.');
+    bt.disabled=true;
+    const rq=CMODE==='criar'?SB.rpc('cliente_cadastrar',{p_nome:nome,p_fone:fone,p_senha:senha}):SB.rpc('cliente_entrar',{p_fone:fone,p_senha:senha});
+    rq.then(async({data,error})=>{
+      if(error)return fail('Sem internet. Tente de novo.');
+      const M={telefone:'Confira o celular com DDD.',nome:'Coloque seu nome.',senha:CMODE==='criar'?'A senha precisa ter pelo menos 4 caracteres.':'Senha errada.',ja_existe:'Esse celular já tem conta. Toque em "Já tenho conta".',nao_existe:'Não achamos conta com esse celular. Toque em "Criar conta".',bloqueado:'Muitas tentativas erradas. Espere 10 minutos.'};
+      if(data&&data.erro)return fail(M[data.erro]||'Não deu certo. Tente de novo.');
+      const era=CMODE;setCT(data.token);CP=null;CMODE='entrar';render();await loadConta();toast(era==='criar'?'Conta criada!':'Bem-vindo de volta!')});return}
   if(e.target.id!=='wform')return;e.preventDefault();
+  if(CT&&CP){const we=document.getElementById('werr'),ws=document.getElementById('wsend');const fail=t=>{we.textContent=t;we.hidden=false};
+    ws.disabled=true;ws.textContent='Agendando…';
+    SB.rpc('cliente_agendar',{p_token:CT,p_barber:W.barberId,p_servico:W.serviceId,p_data:W.date,p_hora:W.time}).then(async({data,error})=>{
+      ws.disabled=false;ws.textContent='Confirmar agendamento';
+      if(error)return fail('Sem internet. Tente de novo.');
+      if(data&&data.erro){
+        if(data.erro==='sessao'){setCT(null);CP=null;location.hash='conta';return}
+        if(['ocupado','data','fora_do_horario','fechado'].includes(data.erro)){await loadOcupados();W.step=2;W.time=null;render();window.scrollTo({top:0});toast('Esse horário acabou de ser ocupado. Escolha outro.');return}
+        if(data.erro==='limite')return fail(`Você já usou os ${data.total} cortes do seu plano neste período.`);
+        if(data.erro==='intervalo')return fail(`Pelo plano, os cortes precisam ter pelo menos ${data.dias} dias de intervalo. Escolha outro dia.`);
+        if(data.erro==='dia_plano')return fail(`Pelo plano, só dá para agendar em: ${diasTxt(data.dias)}.`);
+        if(data.erro==='depois_do_vencimento')return fail(`Seu plano vence em ${short(data.fim)}. Escolha um dia antes disso, ou renove depois.`);
+        return fail('Não deu para agendar. Chama a gente no WhatsApp.');}
+      W={step:4,done:{name:CP.nome||'cliente',serviceId:W.serviceId,barberId:data.barberId,id:data.id,date:W.date,time:W.time,plano:data.plano,pendente:data.pendente,valorPlano:data.valorPlano},lock:W.lock,slug:W.slug,barberId:W.lock?W.barberId:null};
+      await loadOcupados();loadConta();if(READY){try{await loadAll()}catch(e){}}render();window.scrollTo({top:0})});return}
   W.name=document.getElementById('wname').value.trim();W.phone=document.getElementById('wphone').value.trim();
   const we=document.getElementById('werr'),ws=document.getElementById('wsend');const fail=t=>{we.textContent=t;we.hidden=false};
   if(W.name.length<2)return fail('Coloque seu nome.');
@@ -1232,11 +1667,11 @@ document.addEventListener('submit',e=>{
       if(data.erro==='telefone')return fail('Confira seu WhatsApp com DDD.');
       if(data.erro==='nome')return fail('Coloque seu nome.');
       return fail('Não deu para agendar. Chama a gente no WhatsApp.');}
-    W={step:4,done:{name:W.name,serviceId:W.serviceId,barberId:data.barberId,date:W.date,time:W.time},lock:W.lock,slug:W.slug,barberId:W.lock?W.barberId:null};
+    W={step:4,done:{name:W.name,serviceId:W.serviceId,barberId:data.barberId,id:data.id,date:W.date,time:W.time},lock:W.lock,slug:W.slug,barberId:W.lock?W.barberId:null};
     await loadOcupados();if(READY){try{await loadAll()}catch(e){}}render();window.scrollTo({top:0})});
 });
 document.addEventListener('input',e=>{if(e.target.id==='wname')W.name=e.target.value;if(e.target.id==='wphone')W.phone=e.target.value;if(e.target.id==='q'){q=e.target.value.toLowerCase().trim();const pos=e.target.selectionStart;render();const n=document.getElementById('q');n.focus();try{n.setSelectionRange(pos,pos)}catch(err){}}});
-document.addEventListener('change',e=>{if(e.target.id==='pf_m'){PF.m=+e.target.value;render();return}if(e.target.id==='pf_y'){PF.y=+e.target.value;render();return}if(e.target.classList&&e.target.classList.contains('hopen')){const r=e.target.closest('.hrow');r.querySelectorAll('input[type=time]').forEach(i=>i.disabled=!e.target.checked)}});
+document.addEventListener('change',e=>{if(e.target.id==='rel_m'||e.target.id==='rel_y'){relDados();REL[e.target.id==='rel_m'?'m':'y']=+e.target.value;render();return}if(e.target.id==='pf_m'){PF.m=+e.target.value;render();return}if(e.target.id==='pf_y'){PF.y=+e.target.value;render();return}if(e.target.classList&&e.target.classList.contains('hopen')){const r=e.target.closest('.hrow');r.querySelectorAll('input[type=time]').forEach(i=>i.disabled=!e.target.checked)}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!ov.hidden)closeM()});
 route();render();
 (async()=>{
@@ -1246,6 +1681,7 @@ route();render();
   SB.auth.onAuthStateChange((ev,s)=>{SESSION=s;if(ev==='SIGNED_OUT'){READY=false;render()}});
   try{await loadPublic()}catch(e){}
   if(mode==='client')route();
+  if(CT)loadConta();
   await loadOcupados();
   render();
   if(SESSION){let ok={};try{ok=await SB.rpc('eh_equipe')}catch(e){}if(ok&&ok.data===false){await SB.auth.signOut();SESSION=null;render();return}
