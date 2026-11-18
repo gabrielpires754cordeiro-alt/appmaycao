@@ -142,6 +142,7 @@ const waUrl=v=>{v=String(v||'').trim();if(!v)return'';if(/^https?:\/\//i.test(v)
 
 /* Dados da barbearia — mesmos barbeiros, serviços e horários da Maycão Gestão */
 const S={
+  plans:[],
   barbers:[{id:'b1',name:'Maycão',slug:'maycao',color:'#A87622'}],
   services:[{id:'s1',name:'Corte',price:60,dur:30},{id:'s2',name:'Barba',price:35,dur:30},{id:'s3',name:'Corte + Barba',price:70,dur:60},{id:'s4',name:'Pezinho',price:15,dur:30},{id:'s5',name:'Sobrancelha',price:20,dur:30},{id:'s6',name:'Pigmentação',price:60,dur:60},{id:'s7',name:'Corte infantil',price:35,dur:30}],
   hours:{0:null,1:null,2:['09:00','20:00'],3:['09:00','20:00'],4:['09:00','20:00'],5:['09:00','20:00'],6:['09:00','16:00']},
@@ -167,20 +168,26 @@ function siteView(){
   const phoneTxt=phone.length===11?`(${phone.slice(0,2)}) ${phone.slice(2,7)}-${phone.slice(7)}`:'';
   const H=S.hours;
   return `<nav class="snav"><div class="sw"><a class="slogo" href="#site"><img src="${IMG.logo}" alt=""><span>Barbearia do Maycão</span></a>
-   <div class="slinks"><a href="#s-servicos">Serviços</a><a href="#s-barbeiros">Barbeiros</a><a href="#s-visite">Horários</a></div>
+   <div class="slinks"><a href="#s-servicos">Serviços</a>${(S.plans||[]).some(p=>!p.off)?'<a href="#s-planos">Planos</a>':''}<a href="#s-barbeiros">Barbeiros</a><a href="#s-visite">Horários</a></div>
    <a class="sbtn gold" href="${GESTAO}#agendar">Agendar</a></div></nav>
   <header class="hero"><div class="sw hin"><div>
     <span class="status ${aberto?'open':''}"><i></i>${aberto?`Aberto agora · até ${h[1]}`:'Fechado agora · agende online'}</span>
     <h1>Barbearia do<span>Maycão</span></h1>
     <p class="lead">${esc(I.slogan||'')} ${esc((I.end||'').split(' - ').slice(1,2).join(''))}.</p>
-    <div class="hb"><a class="sbtn gold" href="${GESTAO}#agendar">Agendar online</a><a class="sbtn ghost" target="_blank" rel="noopener" href="${esc(waMsg)}">${WA_SVG} WhatsApp</a></div>
+    ${(()=>{const sl=S.slot;if(!sl||!sl.ativo)return'';const mx=Math.max(0,...(sl.maquinas||[]).flatMap(m=>(m.itens||[]).filter(i=>i.tipo==='desconto').map(i=>+i.valor||0)));return mx?`<p style="margin:-12px 0 22px;color:var(--gold);font-weight:700">🎰 Agende online e gire o slot: até ${mx}% de desconto!</p>`:''})()}<div class="hb"><a class="sbtn gold" href="${GESTAO}#agendar">Agendar online</a><a class="sbtn ghost" target="_blank" rel="noopener" href="${esc(waMsg)}">${WA_SVG} WhatsApp</a></div>
     <div class="stats">${I.nota?`<div><b>${esc(I.nota)}</b><small>nota no Google</small></div>`:''}${I.clientes?`<div><b>${esc(I.clientes)}</b><small>clientes atendidos</small></div>`:''}${I.desde?`<div><b>Desde ${esc(I.desde)}</b><small>no Testo Salto</small></div>`:''}</div>
   </div><div class="hlogo"><img src="${IMG.logo}" alt="Logo da Barbearia do Maycão"></div></div></header>
 
   <section class="ss" id="s-servicos"><div class="sw"><div class="shead"><span class="eye">Tabela de preços</span><h2 class="big">Nossos serviços</h2></div>
    <div class="svcs">${S.services.map(s=>`<a class="svc" href="${GESTAO}#agendar"><div><h3>${esc(s.name)}</h3><p>${s.dur} min</p></div><span class="pr">${brl(s.price)}</span></a>`).join('')}</div></div></section>
 
-  <section class="ss alt" id="s-barbeiros"><div class="sw"><div class="shead"><span class="eye">Agendamento online</span><h2 class="big">Escolha seu barbeiro</h2></div>
+  ${(()=>{const ps=(S.plans||[]).filter(p=>!p.off);if(!ps.length)return'';const DC=['dom','seg','ter','qua','qui','sex','sáb'];const dt=a=>!Array.isArray(a)||!a.length||a.length===7?'Todos os dias':[1,2,3,4,5,6,0].filter(d=>a.includes(d)).map(d=>DC[d]).join(', ');
+  return `<section class="ss" id="s-planos"><div class="sw"><div class="shead"><span class="eye">Mensalidade</span><h2 class="big">Planos do mês</h2></div>
+  <div class="svcs">${ps.map(p=>`<div class="svc" style="flex-direction:column;align-items:stretch;gap:10px"><div style="display:flex;justify-content:space-between;gap:12px;align-items:center"><h3>${esc(p.name)}</h3><span class="pr">${brl(+p.price||0)}<small style="font-family:var(--f-body);font-size:.8rem;color:var(--smuted)">/mês</small></span></div>
+   <p>${p.cortes||4} cortes em ${p.dias||30} dias · ${esc((p.servicos||[]).map(id=>(S.services.find(s=>s.id===id)||{}).name).filter(Boolean).join(', '))}</p><p>Vale: ${dt(p.diasSemana)}</p>
+   <a class="sbtn gold" style="justify-content:center" href="${GESTAO}#conta-${esc(p.id)}">Assinar</a></div>`).join('')}</div>
+  <p style="color:var(--smuted);font-size:.9rem;margin-top:18px">Crie sua conta com o celular, escolha o plano e pague na barbearia. Já tem conta? <a href="${GESTAO}#conta" style="color:var(--gold);text-decoration:underline">Entrar</a></p></div></section>`})()}
+<section class="ss alt" id="s-barbeiros"><div class="sw"><div class="shead"><span class="eye">Agendamento online</span><h2 class="big">Escolha seu barbeiro</h2></div>
    <div class="barbs">${S.barbers.filter(b=>!b.off).map(b=>{const nx=OK_OCC?nextFree(b.id):null;return `<div class="barb"><span class="bav" style="background:${esc(b.color)}">${initials(b.name)}</span><h3>${esc(b.name)}</h3><span class="role">${b.id==='b1'?'Dono da casa':'Barbeiro'}</span><span class="nx">${nx?`Próximo horário: <b>${nx}</b>`:'Agenda online · <b>escolha o horário</b>'}</span><a class="sbtn gold" href="${GESTAO}#agendar-${esc(b.slug)}">Agendar com ${esc(b.name)}</a></div>`}).join('')}
     <div class="barb any"><span class="bav" style="background:#2e2a21">?</span><h3>Tanto faz</h3><span class="role">O primeiro horário livre</span><span class="nx">Qualquer barbeiro disponível</span><a class="sbtn ghost" href="${GESTAO}#agendar">Ver horários</a></div></div></div></section>
 
@@ -214,7 +221,7 @@ async function atualizar(){
   if(!SB)return;
   try{
     const {data,error}=await SB.from('config_publica').select('dados').eq('id',1).maybeSingle();
-    if(!error&&data&&data.dados){const d=data.dados;if(Array.isArray(d.barbers))S.barbers=d.barbers;if(Array.isArray(d.services))S.services=d.services;if(d.hours)S.hours=d.hours;if(d.info)S.info={...S.info,...d.info}}
+    if(!error&&data&&data.dados){const d=data.dados;if(Array.isArray(d.barbers))S.barbers=d.barbers;if(Array.isArray(d.services))S.services=d.services;if(Array.isArray(d.plans))S.plans=d.plans;S.slot=d.slot||null;if(d.hours)S.hours=d.hours;if(d.info)S.info={...S.info,...d.info}}
     const oc=await SB.rpc('ocupados',{p_desde:TODAY});
     if(!oc.error){S.appts=(oc.data||[]).map(o=>({barberId:o.barber_id,date:o.data,time:o.hora,dur:o.dur}));OK_OCC=true}
   }catch(e){console.warn(e)}
