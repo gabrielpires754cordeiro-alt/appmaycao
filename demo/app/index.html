@@ -1351,29 +1351,37 @@ function performance(){
   </div>`;
 }
 let comWk=CUR_WK;
+/* ---------- Acerto corrido: o que o Maycão deve desde o último pagamento ---------- */
+function pagosIdx(){const ids=new Set(),wk=new Set();(S.payouts||[]).forEach(p=>{if(Array.isArray(p.ids))p.ids.forEach(i=>ids.add(i));else if(p.week)wk.add(p.barberId+'|'+p.week)});return{ids,wk}}
+function saldoB(b,ix){ix=ix||pagosIdx();
+  const l=S.appts.filter(a=>a.barberId===b.id&&a.status==='concluido'&&a.date<=TODAY&&!ix.ids.has(a.id)&&!ix.wk.has(b.id+'|'+weekStart(a.date))).sort((x,y)=>(x.date+x.time).localeCompare(y.date+y.time));
+  const v=+l.reduce((s,a)=>s+ganhoA(a,b),0).toFixed(2);
+  const ult=(S.payouts||[]).filter(p=>p.barberId===b.id).sort((x,y)=>String(y.em||y.date).localeCompare(String(x.em||x.date)))[0]||null;
+  return{l,v,n:l.length,pts:ptsDe(l),fat:l.reduce((s,a)=>s+(+a.price||0),0),de:l.length?l[0].date:null,ate:l.length?l[l.length-1].date:null,ult}}
+let PAYCONF=null;
 function comissoes(){
-  const bs=S.barbers.filter(b=>b.comm>0&&(!b.off||S.appts.some(a=>a.barberId===b.id&&a.status==='concluido'&&weekStart(a.date)===comWk)));
-  const sum=wk=>bs.reduce((o,b)=>{const w=wkInfo(b,wk);o.earned+=w.earned;o.paid+=w.paid;o.due+=w.due;o.fc+=w.forecast;return o},{earned:0,paid:0,due:0,fc:0});
-  const last=sum(addDays(CUR_WK,-7)),cur=sum(CUR_WK),next=sum(addDays(CUR_WK,7));
-  let pend=0;S.barbers.filter(b=>b.comm>0).forEach(b=>{for(let k=2;k<=8;k++)pend+=wkInfo(b,addDays(CUR_WK,-7*k)).due});pend+=last.due;
-  const isFut=comWk>CUR_WK;
-  const rows=bs.map(b=>{const w=wkInfo(b,comWk);let st,act='';
-    if(isFut){st=`<span class="pill p-agendado">Previsão</span>`}
-    else if(w.earned<=0){st=`<span class="sub" style="font-size:12.5px">Sem atendimentos</span>`}
-    else if(w.due<=0){st=`<span class="pill p-ok">Pago ${short(w.pay[w.pay.length-1].date)}</span>`;act=`<button class="btn sm ghost" data-a="pay-undo" data-id="${b.id}">Desfazer</button>`}
-    else{st=w.paid?`<span class="pill p-baixo">Falta ${brl(w.due)}</span>`:comWk===CUR_WK?`<span class="pill p-confirmado">Acumulando</span>`:`<span class="pill p-zerado">A pagar</span>`;act=`<button class="btn sm pri" data-a="pay" data-id="${b.id}">Pagar ${brl(w.due)}</button>`}
-    return `<tr><td><b>${esc(b.name)}</b><div class="sub" style="margin:0;font-size:12px">${b.comm}%${b.off?' · saiu':''}</div></td><td class="r num">${w.n}</td><td class="r num hide-sm">${brl(w.fat)}</td><td class="r num"><b>${brl(isFut?w.forecast:w.earned)}</b>${!isFut&&w.forecast?`<div class="sub" style="margin:0;font-size:11.5px">+ ${brl(w.forecast)} previsto</div>`:''}</td><td class="r"><div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">${st}${act}</div></td></tr>`}).join('');
-  const hist=(S.payouts||[]).slice().sort((a,b)=>b.date.localeCompare(a.date)||b.week.localeCompare(a.week)).slice(0,12);
-  return finTabs()+head('Comissões','Fechamento semanal, de segunda a sábado')+`
+  const ix=pagosIdx();
+  const bs=S.barbers.filter(b=>(+b.comm||0)>0||saldoB(b,ix).v>0).filter(b=>!b.off||saldoB(b,ix).v>0);
+  const ss=bs.map(b=>({b,s:saldoB(b,ix)}));
+  const total=ss.reduce((t,x)=>t+x.s.v,0);
+  const mes=TODAY.slice(0,8)+'01';
+  const pagoMes=(S.payouts||[]).filter(p=>p.date>=mes).reduce((t,p)=>t+(+p.value||0),0);
+  const rows=ss.map(({b,s})=>{
+    const ult=s.ult?`Último pagamento: ${brl(+s.ult.value||0)} em ${short(s.ult.date)}`:'Ainda sem pagamento registrado';
+    const act=s.v>0?(PAYCONF===b.id?`<button class="btn sm danger" data-a="pay" data-id="${b.id}">Confirmar: paguei ${brl(s.v)}</button><button class="btn sm ghost" data-a="pay-cancel">Voltar</button>`:`<button class="btn sm pri" data-a="pay" data-id="${b.id}">✓ Já paguei</button>`):`<span class="pill p-ok">Em dia</span>`;
+    return `<div class="row" style="flex-wrap:wrap;gap:10px"><span class="av" style="background:${b.color};color:#fff">${initials(b.name)}</span><div class="grow" style="min-width:180px"><div class="t">${esc(b.name)} <span class="sub" style="font-size:12px">· ${+b.comm||0}%${b.off?' · saiu':''}</span></div>
+      <div class="s">${s.n?`${s.n} atendimento${s.n===1?'':'s'} de ${short(s.de)} a ${short(s.ate)}${s.pts?' · '+s.pts+' pts de plano':''}`:'Nada a pagar'}</div><div class="s" style="font-size:12px">${ult}</div></div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px"><b class="num" style="font-size:20px;color:${s.v>0?'var(--bad)':'var(--ok)'}">${brl(s.v)}</b><div class="btns" style="flex-wrap:nowrap">${act}</div></div></div>`}).join('');
+  const hist=(S.payouts||[]).slice().sort((a,b)=>String(b.em||b.date).localeCompare(String(a.em||a.date))).slice(0,15);
+  const ultimoDe={};hist.forEach(p=>{if(!ultimoDe[p.barberId])ultimoDe[p.barberId]=p.id});
+  return finTabs()+head('Comissões','Quanto você deve para cada barbeiro desde o último pagamento')+`
   <div class="kpis">
-    <div class="kpi"><span class="l">Semana passada</span><span class="v" style="color:${last.due>0?'var(--bad)':'var(--ok)'}">${brl(last.due>0?last.due:last.paid)}</span><span class="h">${last.due>0?'ainda a pagar':last.paid?'já pago':'sem comissões'}</span></div>
-    <div class="kpi"><span class="l">Esta semana</span><span class="v">${brl(cur.earned)}</span><span class="h">até agora · fecha em ~${brl(cur.earned+cur.fc)}</span></div>
-    <div class="kpi"><span class="l">Semana que vem</span><span class="v">${brl(next.fc)}</span><span class="h">previsão pelos horários marcados</span></div>
-    <div class="kpi"><span class="l">Total pendente</span><span class="v" style="color:${pend>0?'var(--bad)':'var(--ok)'}">${brl(pend)}</span><span class="h">semanas fechadas sem pagar</span></div>
+    <div class="kpi"><span class="l">A pagar agora</span><span class="v" style="color:${total>0?'var(--bad)':'var(--ok)'}">${brl(total)}</span><span class="h">somando todos os barbeiros</span></div>
+    <div class="kpi"><span class="l">Pago no mês</span><span class="v">${brl(pagoMes)}</span><span class="h">em comissões e pontos</span></div>
   </div>
-  <section class="panel" style="padding:12px 6px"><div class="ph" style="padding:0 10px;flex-wrap:wrap"><h2>${wkLabel(comWk)} · ${short(comWk)} a ${short(addDays(comWk,5))}</h2><div class="seg"><button data-a="cw-nav" data-d="-1" aria-label="Semana anterior">‹</button><button data-a="cw-nav" data-d="0" aria-pressed="${comWk===CUR_WK}">Esta</button><button data-a="cw-nav" data-d="1" aria-label="Próxima semana">›</button></div></div>
-  <div class="tbl"><table><thead><tr><th>Barbeiro</th><th class="r">Atend.</th><th class="r hide-sm">Faturado</th><th class="r">${isFut?'Previsão':'Comissão'}</th><th class="r">Situação</th></tr></thead><tbody>${rows||'<tr><td colspan="5" class="empty">Nenhum barbeiro comissionado.</td></tr>'}</tbody></table></div></section>
-  <section class="panel"><h2>Pagamentos feitos</h2><div class="list">${hist.map(p=>{const b=B(p.barberId);return `<div class="row"><span class="av" style="background:${b?b.color:'var(--muted)'};color:#fff">${b?initials(b.name):'?'}</span><div class="grow"><div class="t">${esc(b?b.name:'Barbeiro')}</div><div class="s">Semana de ${short(p.week)} a ${short(addDays(p.week,5))} · pago em ${short(p.date)}</div></div><b class="num" style="color:var(--ok)">${brl(p.value)}</b></div>`}).join('')||'<p class="empty">Nenhum pagamento registrado.</p>'}</div></section>`;
+  <section class="panel"><h2>Acerto com os barbeiros</h2><div class="list">${rows||'<p class="empty">Nenhum barbeiro comissionado.</p>'}</div>
+  <p class="sub" style="margin:0;font-size:12.5px">O valor soma a comissão dos serviços e os pontos dos planos de cada atendimento ainda não pago. Quando você pagar, toque em <b>Já paguei</b>: o valor volta a zero e começa a contar de novo a partir dos próximos atendimentos.</p></section>
+  <section class="panel"><h2>Pagamentos feitos</h2><div class="list">${hist.map(p=>{const b=B(p.barberId);return `<div class="row"><span class="av" style="background:${b?b.color:'var(--muted)'};color:#fff">${b?initials(b.name):'?'}</span><div class="grow"><div class="t">${esc(b?b.name:'Barbeiro')}</div><div class="s">Pago em ${short(p.date)} · ${Array.isArray(p.ids)?`${p.ids.length} atendimento${p.ids.length===1?'':'s'}${p.de?` de ${short(p.de)} a ${short(p.ate)}`:''}${p.pts?' · '+p.pts+' pts':''}`:`semana de ${short(p.week)}`}</div></div><b class="num" style="color:var(--ok)">${brl(+p.value||0)}</b>${ultimoDe[p.barberId]===p.id?`<button class="btn sm ghost" data-a="pay-undo" data-id="${p.id}" title="Desfazer este pagamento">Desfazer</button>`:''}</div>`}).join('')||'<p class="empty">Nenhum pagamento registrado.</p>'}</div></section>`;
 }
 function financeiro(){
   if(!isDono())return meusGanhos();
@@ -1442,10 +1450,10 @@ function meusGanhos(){
     <div class="kpi"><span class="l">Pontos de plano</span><span class="v">${pts} pts</span><span class="h">${(+me.comm||0)>0?brl(pts*PV())+' · '+brl(PV())+' cada':'cortes pelo plano'}</span></div>
     <div class="kpi"><span class="l">Ticket médio</span><span class="v">${brl(done.length?fat/done.length:0)}</span><span class="h">por cliente</span></div>
   </div>
-  ${(()=>{const L=wkInfo(me,addDays(CUR_WK,-7)),Cw=wkInfo(me,CUR_WK),N=wkInfo(me,addDays(CUR_WK,7));return `<section class="panel"><h2>Minha comissão por semana</h2><div class="list">
-    <div class="row"><div class="grow"><div class="t">Semana passada</div><div class="s">${short(addDays(CUR_WK,-7))} a ${short(addDays(CUR_WK,-2))}</div></div><b class="num">${brl(L.earned)}</b>${L.earned?(L.due>0?'<span class="pill p-zerado">A receber</span>':'<span class="pill p-ok">Recebido</span>'):''}</div>
-    <div class="row"><div class="grow"><div class="t">Esta semana</div><div class="s">até agora · + ${brl(Cw.forecast)} pelos horários marcados</div></div><b class="num">${brl(Cw.earned)}</b><span class="pill p-confirmado">Acumulando</span></div>
-    <div class="row"><div class="grow"><div class="t">Semana que vem</div><div class="s">previsão pelos horários marcados</div></div><b class="num">${brl(N.forecast)}</b></div></div></section>`})()}
+  ${(()=>{const s=saldoB(me),ps=(S.payouts||[]).filter(p=>p.barberId===me.id).sort((a,b)=>String(b.em||b.date).localeCompare(String(a.em||a.date))).slice(0,6);return (+me.comm||0)>0?`<section class="panel"><h2>Acerto com o Maycão</h2><div class="list">
+    <div class="row"><div class="grow"><div class="t">A receber</div><div class="s">${s.n?`${s.n} atendimento${s.n===1?'':'s'} desde ${short(s.de)}${s.pts?' · '+s.pts+' pts de plano':''}`:'Tudo pago até agora'}</div></div><b class="num" style="font-size:20px;color:${s.v>0?'var(--warn)':'var(--ok)'}">${brl(s.v)}</b></div>
+    ${ps.map(p=>`<div class="row"><div class="grow"><div class="t">Recebido em ${short(p.date)}</div><div class="s">${Array.isArray(p.ids)?`${p.ids.length} atendimento${p.ids.length===1?'':'s'}${p.de?` de ${short(p.de)} a ${short(p.ate)}`:''}`:`semana de ${short(p.week)}`}</div></div><b class="num" style="color:var(--ok)">${brl(+p.value||0)}</b><span class="pill p-ok">Pago</span></div>`).join('')}
+    </div></section>`:''})()}
   <section class="panel chart"><div class="ph"><h2>Comissão por dia</h2><span class="sub" style="margin:0;font-size:12px">últimos 14 dias</span></div>${svg}</section>
   <section class="panel" style="padding:12px 6px"><h2 style="padding:0 10px">Meus atendimentos</h2><div class="tbl"><table><thead><tr><th>Data</th><th>Cliente</th><th class="r">Valor</th><th class="r">Comissão</th></tr></thead><tbody>
   ${done.slice(0,30).map(a=>`<tr><td class="num">${short(a.date)} ${a.time}</td><td><div style="font-weight:600">${esc(C(a.clientId).name)}</div><div class="sub" style="margin:0;font-size:12px">${esc(SV(a.serviceId).name)}</div></td><td class="r num">${a.plano?'plano · '+ptsA(a)+' pts':brl(a.price)}</td><td class="r num" style="color:var(--ok);font-weight:700">${brl(ganhoA(a,me))}</td></tr>`).join('')||'<tr><td colspan="4" class="empty">Nenhum atendimento no período.</td></tr>'}
@@ -1668,8 +1676,12 @@ document.addEventListener('click',e=>{
     case 'pf-type':PF.type=el.dataset.t;render();break;
     case 'pf-nav':PF=pfShift(PF,+el.dataset.d);render();break;
     case 'cw-nav':{const d=+el.dataset.d;comWk=d===0?CUR_WK:addDays(comWk,7*d);render();break}
-    case 'pay':{const b=B(id),w=wkInfo(b,comWk);if(w.due<=0)break;S.payouts.push({id:uid(),barberId:b.id,week:comWk,value:w.due,date:TODAY});save();render();toast(`${brl(w.due)} pago para ${b.name}`);break}
-    case 'pay-undo':{const b=B(id);S.payouts=S.payouts.filter(p=>!(p.barberId===b.id&&p.week===comWk));save();render();toast('Pagamento desfeito');break}
+    case 'pay':{const b=B(id),s=saldoB(b);if(s.v<=0)break;if(PAYCONF!==b.id){PAYCONF=b.id;render();break}PAYCONF=null;
+      S.payouts.push({id:uid(),barberId:b.id,value:s.v,date:TODAY,em:new Date().toISOString().slice(0,19),ids:s.l.map(a=>a.id),de:s.de,ate:s.ate,pts:s.pts});
+      save();render();toast(`${brl(s.v)} pago para ${b.name} · saldo zerado`);break}
+    case 'pay-cancel':PAYCONF=null;render();break;
+    case 'pay-undo':{const p=(S.payouts||[]).find(x=>x.id===id);if(!p)break;if(el.dataset.ok!=='1'){el.dataset.ok='1';el.textContent='Desfazer mesmo?';break}
+      S.payouts=S.payouts.filter(x=>x.id!==id);save();render();toast('Pagamento desfeito · o valor voltou para a pagar');break}
     case 'expense':formModal('Lançar despesa',[{k:'desc',l:'Descrição',req:1},{k:'value',l:'Valor (R$)',type:'number',req:1},{k:'cat',l:'Categoria',opts:['Aluguel','Contas','Produtos','Insumos','Manutenção','Outros']},{k:'method',l:'Pago com',opts:PAYS}],'Lançar',o=>{if(!(o.value>0))return;S.tx.push({id:uid(),date:TODAY,type:'out',...o});save();closeM();render();toast('Despesa lançada')});break;
     case 'comm':{const b=B(id);formModal('Comissão de '+esc(b.name),[{k:'comm',l:'Percentual sobre serviços (%)',type:'number',v:b.comm,req:1}],'Salvar',o=>{b.comm=Math.max(0,Math.min(100,o.comm||0));save();syncCfg();closeM();render();toast('Comissão atualizada')});break}
     case 'sell':formModal('Vender '+esc(P.name),[{k:'qty',l:`Quantidade (tem ${P.qty})`,type:'number',v:1,req:1},{k:'method',l:'Pagamento',opts:PAYS}],'Registrar venda',o=>{const n=Math.max(1,Math.min(P.qty,Math.floor(o.qty)));P.qty-=n;for(let i=0;i<n;i++)S.tx.push({id:uid(),date:TODAY,type:'in',cat:'Produto',desc:P.name,value:P.price,method:o.method});save();closeM();render();toast(`Venda registrada · ${brl(P.price*n)}`)});break;
