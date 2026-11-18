@@ -1,0 +1,17 @@
+{
+  "name": "Maycão DEMO",
+  "short_name": "Maycão DEMO",
+  "description": "Agenda, clientes, financeiro e estoque da Barbearia do Maycão.",
+  "lang": "pt-BR",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0F151C",
+  "theme_color": "#A87622",
+  "icons": [
+    {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
