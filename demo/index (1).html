@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<script>if(!/\/$|\.html$/.test(location.pathname))location.replace(location.pathname+'/'+location.search+location.hash)</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Barbearia do Maycão · Testo Salto, Blumenau</title>
+<meta name="description" content="Barbearia no Testo Salto, Blumenau. Degradê, freestyle, barba e corte infantil. Agende online com seu barbeiro.">
+<meta name="theme-color" content="#0e0d0b">
+<meta property="og:title" content="Barbearia do Maycão">
+<meta property="og:description" content="Degradê, freestyle e barba no Testo Salto, Blumenau. Agende online.">
+<meta property="og:image" content="logo.webp">
+<link rel="icon" type="image/png" href="app/icons/icon-192.png">
+<link rel="apple-touch-icon" href="app/icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=Figtree:wght@400;500;600;700&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<style>
+/* Site da Barbearia do Maycão — escuro e dourado em qualquer tema (identidade da marca) */
+:root{color-scheme:dark;--f-display:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;--f-body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){color-scheme:dark}}
+:root[data-theme="dark"]{color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:#0e0d0b}
+body{font-family:var(--f-body);font-size:15px}
+button,input{font:inherit}
+:focus-visible{outline:2px solid #d4a24c;outline-offset:2px}
+
+/* ===== Site público (mesma página, modo "site") ===== */
+
+#site{--sbg:#0e0d0b;--sbg2:#16140f;--scard:#1d1a14;--sline:#2e2a21;--gold:#d4a24c;--gold2:#f0c977;--stext:#f3eee4;--smuted:#a59d8c;--green:#25d366;
+  background:var(--sbg);color:var(--stext);font-family:var(--f-body);line-height:1.6;overflow-x:hidden;min-height:100vh}
+#site a{color:inherit;text-decoration:none}
+#site h1,#site h2.big,#site h3{font-family:var(--f-display);font-weight:800;text-transform:uppercase;letter-spacing:.01em;line-height:.95;margin:0;color:var(--stext)}
+#site .sw{max-width:1120px;margin:0 auto;padding:0 max(16px,env(safe-area-inset-left,0px))}
+#site .eye{color:var(--gold);font-size:.75rem;font-weight:700;letter-spacing:.25em;text-transform:uppercase}
+#site .sbtn{display:inline-flex;align-items:center;gap:10px;padding:14px 24px;border-radius:999px;font-weight:700;font-size:.95rem;transition:transform .2s;border:0;cursor:pointer}
+#site .sbtn:hover{transform:translateY(-2px)}
+#site .gold{background:linear-gradient(135deg,var(--gold2),var(--gold));color:#1a1408;box-shadow:0 10px 30px -10px rgba(212,162,76,.7)}
+#site .ghost{border:1.5px solid var(--sline);color:var(--stext)}
+#site .ghost:hover{border-color:var(--gold)}
+#site .snav{position:sticky;top:0;z-index:30;background:rgba(14,13,11,.88);backdrop-filter:blur(12px);border-bottom:1px solid var(--sline)}
+#site .snav .sw{display:flex;align-items:center;justify-content:space-between;height:64px;gap:12px}
+#site .slogo{display:flex;align-items:center;gap:10px;line-height:1;font-family:var(--f-display);font-weight:800;font-size:1.35rem;text-transform:uppercase}
+#site .slogo img{width:38px;height:38px;border-radius:50%}
+#site .slinks{display:flex;gap:24px;font-size:.9rem;color:var(--smuted);font-weight:600}
+#site .slinks a:hover{color:var(--gold)}
+#site .snav .sbtn{padding:9px 18px;font-size:.85rem}
+#site .hero{padding:70px 0 80px;background:radial-gradient(ellipse 70% 60% at 85% 20%,rgba(212,162,76,.18),transparent 60%),var(--sbg)}
+#site .hin{display:grid;grid-template-columns:1.2fr .8fr;gap:40px;align-items:center}
+#site .hero h1{font-size:clamp(3.6rem,12vw,8.5rem);margin:14px 0 6px}
+#site .hero h1 span{color:var(--gold);display:block}
+#site .lead{color:var(--smuted);font-size:1.1rem;max-width:480px;margin:14px 0 28px}
+#site .hb{display:flex;flex-wrap:wrap;gap:12px}
+#site .status{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:999px;background:var(--scard);border:1px solid var(--sline);font-size:.82rem;font-weight:600}
+#site .status i{width:8px;height:8px;border-radius:50%;background:#e5534b}
+#site .status.open i{background:var(--green);box-shadow:0 0 0 4px rgba(37,211,102,.2)}
+#site .hlogo{justify-self:center;width:min(360px,80vw);aspect-ratio:1;position:relative}
+#site .hlogo::before{content:"";position:absolute;inset:-12%;border-radius:50%;background:radial-gradient(circle,rgba(212,162,76,.35),transparent 65%)}
+#site .hlogo img{position:relative;width:100%;height:100%;border-radius:50%;box-shadow:0 30px 80px -20px rgba(0,0,0,.8),0 0 0 2px rgba(212,162,76,.4);animation:sfloat 6s ease-in-out infinite}
+@keyframes sfloat{50%{transform:translateY(-12px)}}
+#site .stats{display:flex;gap:32px;margin-top:40px;flex-wrap:wrap}
+#site .stats b{font-family:var(--f-display);font-size:2.3rem;color:var(--gold);display:block;line-height:1}
+#site .stats small{color:var(--smuted);font-size:.82rem}
+#site section.ss{padding:80px 0}
+#site .alt{background:var(--sbg2);border-block:1px solid var(--sline)}
+#site .shead{margin-bottom:36px}
+#site .shead h2{font-size:clamp(2.6rem,7vw,4.2rem);margin-top:8px}
+#site .svcs{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+#site .svc{background:var(--scard);border:1px solid var(--sline);border-radius:16px;padding:20px 22px;display:flex;justify-content:space-between;gap:14px;align-items:center;transition:border-color .2s,transform .2s}
+#site .svc:hover{border-color:var(--gold);transform:translateY(-3px)}
+#site .svc h3{font-size:1.55rem}
+#site .svc p{color:var(--smuted);font-size:.85rem;margin:4px 0 0}
+#site .svc .pr{font-family:var(--f-display);font-weight:800;font-size:1.9rem;color:var(--gold);white-space:nowrap}
+#site .barbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
+#site .barb{background:var(--scard);border:1px solid var(--sline);border-radius:18px;padding:24px;display:flex;flex-direction:column;gap:12px;align-items:flex-start}
+#site .barb .bav{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;font-family:var(--f-display);font-weight:800;font-size:1.6rem;color:#fff;border:2px solid rgba(255,255,255,.15)}
+#site .barb h3{font-size:1.9rem}
+#site .barb .role{color:var(--smuted);font-size:.85rem;margin-top:-6px}
+#site .barb .nx{font-size:.85rem;color:var(--stext);background:var(--sbg2);border:1px solid var(--sline);border-radius:999px;padding:5px 12px}
+#site .barb .nx b{color:var(--gold)}
+#site .barb .sbtn{width:100%;justify-content:center;margin-top:auto}
+#site .barb.any{border-style:dashed}
+#site .about{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
+#site .about p{color:var(--smuted);font-size:1.03rem}
+#site .feats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:24px}
+#site .feat{display:flex;gap:10px;align-items:center;font-weight:600;font-size:.9rem}
+#site .feat i{width:38px;height:38px;border-radius:11px;background:var(--scard);border:1px solid var(--sline);display:grid;place-items:center;font-style:normal}
+#site .gal{display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:190px;gap:12px}
+#site .gal div{border-radius:14px;background-size:cover;background-position:center;border:1px solid var(--sline)}
+#site .gal div:first-child{grid-row:span 2}
+#site .gal div:nth-child(4){grid-column:span 2}
+#site .visit{display:grid;grid-template-columns:1fr 1.2fr;gap:20px}
+#site .box{background:var(--scard);border:1px solid var(--sline);border-radius:18px;padding:26px}
+#site .hrs{list-style:none;margin:10px 0 0;padding:0}
+#site .hrs li{display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px dashed var(--sline);font-size:.95rem}
+#site .hrs li:last-child{border:0}
+#site .hrs li.today{color:var(--gold);font-weight:700}
+#site .hrs .off{color:#7d7566}
+#site .cts{margin-top:22px;display:grid;gap:12px}
+#site .cts a{display:flex;gap:10px;align-items:center;color:var(--smuted);font-size:.93rem}
+#site .cts a:hover{color:var(--gold)}
+#site .pays{margin-top:18px;display:flex;flex-wrap:wrap;gap:8px}
+#site .pays span{font-size:.76rem;padding:5px 11px;border-radius:999px;background:var(--sbg2);border:1px solid var(--sline);color:var(--smuted)}
+#site .map{border-radius:18px;overflow:hidden;border:1px solid var(--sline);min-height:360px}
+#site .map iframe{width:100%;height:100%;min-height:360px;border:0;filter:grayscale(.6) invert(.92) hue-rotate(180deg) contrast(.9)}
+#site .cta{text-align:center;padding:90px 16px;background:radial-gradient(ellipse 60% 80% at 50% 100%,rgba(212,162,76,.2),transparent 70%),var(--sbg)}
+#site .cta h2{font-size:clamp(2.8rem,9vw,5.5rem);margin:10px 0 16px}
+#site .cta p{color:var(--smuted);margin:0 0 28px}
+#site footer{border-top:1px solid var(--sline);padding:26px 0 90px;color:var(--smuted);font-size:.82rem}
+#site footer .sw{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+#site footer a{text-decoration:underline}
+#site .waf{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:40;width:58px;height:58px;border-radius:50%;background:var(--green);display:grid;place-items:center;color:#fff;box-shadow:0 10px 30px -5px rgba(37,211,102,.6)}
+@media(max-width:820px){#site .slinks{display:none}#site .slogo{font-size:1.1rem}#site .hin,#site .about,#site .visit{grid-template-columns:1fr}#site .hlogo{width:210px;order:-1}#site .hero{padding-top:36px}}
+
+</style>
+</head>
+<body>
+<div id="site"></div>
+<script>
+(function(){
+const DEMO=!!(window.MAYCAO_CONFIG||{}).DEMO;const SKP=DEMO?'maycao-demo-':'maycao-';
+if(DEMO){const bar=document.createElement('div');bar.textContent='DEMONSTRAÇÃO · dados de teste, nada aqui afeta a barbearia de verdade';bar.style.cssText='position:sticky;top:0;z-index:999;background:repeating-linear-gradient(-45deg,#b03434 0 14px,#8e2727 14px 28px);color:#fff;font:700 12.5px/1.2 system-ui,sans-serif;letter-spacing:.06em;text-align:center;padding:7px 10px;text-transform:uppercase';document.body.prepend(bar)}
+
+const GESTAO='app/';
+const IMG={logo:'logo.webp'};
+const STEP=30;
+const DIAS=['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+const WD=['dom','seg','ter','qua','qui','sex','sáb'];
+const brl=v=>Number(v).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const pad=n=>String(n).padStart(2,'0');
+const ymd=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const addDays=(s,n)=>{const d=new Date(s+'T12:00:00');d.setDate(d.getDate()+n);return ymd(d)};
+const toMin=t=>{const[h,m]=t.split(':').map(Number);return h*60+m};
+const toT=m=>pad(Math.floor(m/60))+':'+pad(m%60);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const short=s=>{const d=new Date(s+'T12:00:00');return pad(d.getDate())+'/'+pad(d.getMonth()+1)};
+const fmtDay=s=>new Date(s+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
+const initials=n=>n.split(' ').map(p=>p[0]).slice(0,2).join('').toUpperCase();
+const uid=()=>Math.random().toString(36).slice(2,9);
+const TODAY=ymd(new Date());
+const nowMin=()=>{const d=new Date();return d.getHours()*60+d.getMinutes()};
+const igUrl=v=>{v=String(v||'').trim();if(!v)return'';if(/^https?:\/\//i.test(v))return v;return'https://instagram.com/'+v.replace(/^@/,'')};
+const waUrl=v=>{v=String(v||'').trim();if(!v)return'';if(/^https?:\/\//i.test(v))return v;const d=v.replace(/\D/g,'');return d?'https://wa.me/'+(d.length<=11?'55'+d:d):''};
+
+/* Dados da barbearia — mesmos barbeiros, serviços e horários da Maycão Gestão */
+const S={
+  plans:[],
+  barbers:[{id:'b1',name:'Maycão',slug:'maycao',color:'#A87622'}],
+  services:[{id:'s1',name:'Corte',price:60,dur:30},{id:'s2',name:'Barba',price:35,dur:30},{id:'s3',name:'Corte + Barba',price:70,dur:60},{id:'s4',name:'Pezinho',price:15,dur:30},{id:'s5',name:'Sobrancelha',price:20,dur:30},{id:'s6',name:'Pigmentação',price:60,dur:60},{id:'s7',name:'Corte infantil',price:35,dur:30}],
+  hours:{0:null,1:null,2:['09:00','20:00'],3:['09:00','20:00'],4:['09:00','20:00'],5:['09:00','20:00'],6:['09:00','16:00']},
+  info:{insta:'https://instagram.com/barbeariadomaycao',whats:'https://wa.me/5547988229178',end:'R. Philipp Bauler, 1955 - Testo Salto, Blumenau - SC',slogan:'Degradê na régua, freestyle, barba alinhada e aquele papo bom.',sobre:'Aberta desde 2023 e com mais de 5 mil clientes atendidos, na Barbearia do Maycão cada corte é feito com calma e capricho — do degradê ao freestyle, da barba ao corte da criançada. Ambiente tranquilo no Testo Salto, atendimento com hora marcada e aquele cuidado de quem ama o que faz.',nota:'5,0 ★',clientes:'5 mil+',desde:'2023'},
+  appts:[]
+};
+const B=id=>S.barbers.find(x=>x.id===id), SV=id=>S.services.find(x=>x.id===id);
+const dayH=s=>S.hours[new Date(s+'T12:00:00').getDay()]||null;
+const isClosed=s=>!dayH(s);
+function busy(bid,date,start,dur){return S.appts.some(a=>a.barberId===bid&&a.date===date&&toMin(a.time)<start+dur&&start<toMin(a.time)+(a.dur||30))}
+function freeTimes(bid,date,dur){const out=[];const h=dayH(date);if(!h)return out;const o=toMin(h[0]),c=toMin(h[1]);
+  for(let t=o;t+dur<=c;t+=STEP){if(date===TODAY&&t<=nowMin()+30)continue;if(!busy(bid,date,t,dur))out.push(toT(t))}return out}
+
+/* ---------- Site público ---------- */
+const WA_SVG='<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.5 14.4c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.1-.7.1-.2.3-.8.9-.9 1.1-.2.2-.3.2-.6.1-.3-.1-1.2-.5-2.4-1.5-.9-.8-1.5-1.8-1.6-2.1-.2-.3 0-.5.1-.6l.4-.5c.2-.2.2-.3.3-.5.1-.2 0-.4 0-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.4s1 2.8 1.2 3c.1.2 2 3.1 4.9 4.3 2.4 1 2.9.8 3.4.7.5-.1 1.7-.7 2-1.4.2-.7.2-1.2.2-1.4-.1 0-.3-.1-.6-.2zM12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2z"/></svg>';
+function nextFree(bid){let d=TODAY;for(let i=0;i<14;i++){const t=freeTimes(bid,d,30);if(t.length)return (d===TODAY?'hoje':d===addDays(TODAY,1)?'amanhã':WD[new Date(d+'T12:00:00').getDay()]+' '+short(d))+' às '+t[0];d=addDays(d,1)}return null}
+function siteView(){
+  const I=S.info,wa=waUrl(I.whats),ig=igUrl(I.insta),igh=ig.replace(/^https?:\/\/(www\.)?instagram\.com\//,'').replace(/\/$/,'');
+  const now=new Date(),dw=now.getDay(),h=dayH(TODAY),nm=nowMin();
+  const aberto=h&&nm>=toMin(h[0])&&nm<toMin(h[1]);
+  const waMsg=wa?wa+(wa.includes('?')?'&':'?')+'text='+encodeURIComponent('Olá, Maycão! Vi o site e quero agendar um horário 💈'):GESTAO+'#agendar';
+  const phone=(I.whats||'').replace(/\D/g,'').replace(/^55/,'');
+  const phoneTxt=phone.length===11?`(${phone.slice(0,2)}) ${phone.slice(2,7)}-${phone.slice(7)}`:'';
+  const H=S.hours;
+  return `<nav class="snav"><div class="sw"><a class="slogo" href="#site"><img src="${IMG.logo}" alt=""><span>Barbearia do Maycão</span></a>
+   <div class="slinks"><a href="#s-servicos">Serviços</a>${(S.plans||[]).some(p=>!p.off)?'<a href="#s-planos">Planos</a>':''}<a href="#s-barbeiros">Barbeiros</a><a href="#s-visite">Horários</a></div>
+   <a class="sbtn gold" href="${GESTAO}#agendar">Agendar</a></div></nav>
+  <header class="hero"><div class="sw hin"><div>
+    <span class="status ${aberto?'open':''}"><i></i>${aberto?`Aberto agora · até ${h[1]}`:'Fechado agora · agende online'}</span>
+    <h1>Barbearia do<span>Maycão</span></h1>
+    <p class="lead">${esc(I.slogan||'')} ${esc((I.end||'').split(' - ').slice(1,2).join(''))}.</p>
+    ${(()=>{const sl=S.slot;if(!sl||!sl.ativo)return'';const mx=Math.max(0,...(sl.maquinas||[]).flatMap(m=>(m.itens||[]).filter(i=>i.tipo==='desconto').map(i=>+i.valor||0)));return mx?`<p style="margin:-12px 0 22px;color:var(--gold);font-weight:700">🎰 Agende online e gire o slot: até ${mx}% de desconto!</p>`:''})()}<div class="hb"><a class="sbtn gold" href="${GESTAO}#agendar">Agendar online</a><a class="sbtn ghost" target="_blank" rel="noopener" href="${esc(waMsg)}">${WA_SVG} WhatsApp</a></div>
+    <div class="stats">${I.nota?`<div><b>${esc(I.nota)}</b><small>nota no Google</small></div>`:''}${I.clientes?`<div><b>${esc(I.clientes)}</b><small>clientes atendidos</small></div>`:''}${I.desde?`<div><b>Desde ${esc(I.desde)}</b><small>no Testo Salto</small></div>`:''}</div>
+  </div><div class="hlogo"><img src="${IMG.logo}" alt="Logo da Barbearia do Maycão"></div></div></header>
+
+  <section class="ss" id="s-servicos"><div class="sw"><div class="shead"><span class="eye">Tabela de preços</span><h2 class="big">Nossos serviços</h2></div>
+   <div class="svcs">${S.services.map(s=>`<a class="svc" href="${GESTAO}#agendar"><div><h3>${esc(s.name)}</h3><p>${s.dur} min</p></div><span class="pr">${brl(s.price)}</span></a>`).join('')}</div></div></section>
+
+  ${(()=>{const ps=(S.plans||[]).filter(p=>!p.off);if(!ps.length)return'';const DC=['dom','seg','ter','qua','qui','sex','sáb'];const dt=a=>!Array.isArray(a)||!a.length||a.length===7?'Todos os dias':[1,2,3,4,5,6,0].filter(d=>a.includes(d)).map(d=>DC[d]).join(', ');
+  return `<section class="ss" id="s-planos"><div class="sw"><div class="shead"><span class="eye">Mensalidade</span><h2 class="big">Planos do mês</h2></div>
+  <div class="svcs">${ps.map(p=>`<div class="svc" style="flex-direction:column;align-items:stretch;gap:10px"><div style="display:flex;justify-content:space-between;gap:12px;align-items:center"><h3>${esc(p.name)}</h3><span class="pr">${brl(+p.price||0)}<small style="font-family:var(--f-body);font-size:.8rem;color:var(--smuted)">/mês</small></span></div>
+   <p>${p.cortes||4} cortes em ${p.dias||30} dias · ${esc((p.servicos||[]).map(id=>(S.services.find(s=>s.id===id)||{}).name).filter(Boolean).join(', '))}</p><p>Vale: ${dt(p.diasSemana)}</p>
+   <a class="sbtn gold" style="justify-content:center" href="${GESTAO}#conta-${esc(p.id)}">Assinar</a></div>`).join('')}</div>
+  <p style="color:var(--smuted);font-size:.9rem;margin-top:18px">Crie sua conta com o celular, escolha o plano e pague na barbearia. Já tem conta? <a href="${GESTAO}#conta" style="color:var(--gold);text-decoration:underline">Entrar</a></p></div></section>`})()}
+<section class="ss alt" id="s-barbeiros"><div class="sw"><div class="shead"><span class="eye">Agendamento online</span><h2 class="big">Escolha seu barbeiro</h2></div>
+   <div class="barbs">${S.barbers.filter(b=>!b.off).map(b=>{const nx=OK_OCC?nextFree(b.id):null;return `<div class="barb"><span class="bav" style="background:${esc(b.color)}">${initials(b.name)}</span><h3>${esc(b.name)}</h3><span class="role">${b.id==='b1'?'Dono da casa':'Barbeiro'}</span><span class="nx">${nx?`Próximo horário: <b>${nx}</b>`:'Agenda online · <b>escolha o horário</b>'}</span><a class="sbtn gold" href="${GESTAO}#agendar-${esc(b.slug)}">Agendar com ${esc(b.name)}</a></div>`}).join('')}
+    <div class="barb any"><span class="bav" style="background:#2e2a21">?</span><h3>Tanto faz</h3><span class="role">O primeiro horário livre</span><span class="nx">Qualquer barbeiro disponível</span><a class="sbtn ghost" href="${GESTAO}#agendar">Ver horários</a></div></div></div></section>
+
+  <section class="ss"><div class="sw about" style="grid-template-columns:1fr;max-width:760px;text-align:center"><div><span class="eye">Quem somos</span><h2 class="big" style="font-size:clamp(2.6rem,7vw,4.2rem);margin:8px 0 20px">Mais que um corte</h2>
+   <p>${esc(I.sobre||'')}</p>
+   <div class="feats"><div class="feat"><i>✂</i>Degradê e freestyle</div><div class="feat"><i>🧔</i>Barba na navalha</div><div class="feat"><i>👦</i>Bom para crianças</div><div class="feat"><i>📅</i>Agenda online</div></div></div>
+   </div></section>
+
+  <section class="ss alt" id="s-visite"><div class="sw"><div class="shead"><span class="eye">Venha nos visitar</span><h2 class="big">Horários &amp; localização</h2></div>
+   <div class="visit"><div class="box"><h3 style="font-size:1.7rem">Funcionamento</h3>
+    <ul class="hrs">${[1,2,3,4,5,6,0].map(d=>`<li class="${d===dw?'today':''}"><span>${DIAS[d]}${d===dw?' · hoje':''}</span><span class="${H[d]?'':'off'}">${H[d]?H[d][0]+' – '+H[d][1]:'Fechado'}</span></li>`).join('')}</ul>
+    <div class="cts">${I.end?`<a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(I.end)}">📍 ${esc(I.end)}</a>`:''}${phoneTxt?`<a href="tel:+55${phone}">📞 ${phoneTxt}</a>`:''}${ig?`<a target="_blank" rel="noopener" href="${esc(ig)}">📸 @${esc(igh)}</a>`:''}</div>
+    <div class="pays"><span>💳 Crédito</span><span>💳 Débito</span><span>📱 Aproximação</span><span>Pix</span><span>Dinheiro</span></div></div>
+    <div class="map">${I.end?`<iframe loading="lazy" title="Mapa" referrerpolicy="no-referrer-when-downgrade" src="https://www.google.com/maps?q=${encodeURIComponent(I.end)}&output=embed"></iframe>`:''}</div></div></div></section>
+
+  <section class="cta"><span class="eye">Bora dar um trato no visual?</span><h2 class="big">Garanta seu horário</h2><p>Escolha o barbeiro, o serviço e o horário em menos de um minuto.</p><a class="sbtn gold" href="${GESTAO}#agendar">Agendar agora</a></section>
+  <footer><div class="sw"><span>© ${now.getFullYear()} Barbearia do Maycão · ${esc(I.end||'')}</span><a href="${GESTAO}" target="_blank" rel="noopener">Área da barbearia</a></div></footer>
+  ${wa?`<a class="waf" target="_blank" rel="noopener" href="${esc(waMsg)}" aria-label="WhatsApp">${WA_SVG.replace('width="20" height="20"','width="30" height="30"')}</a>`:''}`;
+}
+
+/* ---------- Dados ao vivo (Supabase) ---------- */
+let OK_OCC=false;
+function render(){document.getElementById('site').innerHTML=siteView()}
+document.addEventListener('click',e=>{const a=e.target.closest('#site a[href^="#"]');if(!a)return;const h=a.getAttribute('href').slice(1);
+  if(h==='site'){e.preventDefault();window.scrollTo({top:0,behavior:'smooth'});return}
+  const t=document.getElementById(h);if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth'})}});
+render();
+const CFG=window.MAYCAO_CONFIG||{};
+const SB=(window.supabase&&CFG.SUPABASE_URL&&/^https:\/\//.test(CFG.SUPABASE_URL)&&CFG.SUPABASE_ANON_KEY&&!/COLE/.test(CFG.SUPABASE_ANON_KEY))?window.supabase.createClient(CFG.SUPABASE_URL,CFG.SUPABASE_ANON_KEY,{auth:{persistSession:false}}):null;
+async function atualizar(){
+  if(!SB)return;
+  try{
+    const {data,error}=await SB.from('config_publica').select('dados').eq('id',1).maybeSingle();
+    if(!error&&data&&data.dados){const d=data.dados;if(Array.isArray(d.barbers))S.barbers=d.barbers;if(Array.isArray(d.services))S.services=d.services;if(Array.isArray(d.plans))S.plans=d.plans;S.slot=d.slot||null;if(d.hours)S.hours=d.hours;if(d.info)S.info={...S.info,...d.info}}
+    const oc=await SB.rpc('ocupados',{p_desde:TODAY});
+    if(!oc.error){S.appts=(oc.data||[]).map(o=>({barberId:o.barber_id,date:o.data,time:o.hora,dur:o.dur}));OK_OCC=true}
+  }catch(e){console.warn(e)}
+  render();
+}
+atualizar();
+if(SB){try{SB.channel('site').on('postgres_changes',{event:'*',schema:'public',table:'config_publica'},()=>atualizar()).subscribe()}catch(e){}}
+setInterval(atualizar,120000);
+})();
+</script>
+</body></html>
