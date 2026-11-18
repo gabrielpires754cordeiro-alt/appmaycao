@@ -500,7 +500,8 @@ const APP_URL=location.origin+location.pathname.replace(/index\.html$/,'');
 const SITE_URL=new URL('../',location.href).href;
 let user=null; try{user=sessionStorage.getItem(SKP+'user')}catch(e){}
 if(user&&!ACT().some(b=>b.id===user))user=null;
-const isDono=()=>user==='b1';
+const isMaycao=()=>user==='b1';
+const isDono=()=>{if(!user)return false;if(user==='b1')return true;const b=(S.barbers||[]).find(x=>x.id===user);return !!(b&&b.admin&&!b.off)};
 const visBarbers=()=>isDono()?ACT():ACT().filter(b=>b.id===user);
 function menu(){return isDono()?[['painel','Painel'],['agenda','Agenda'],['clientes','Clientes'],['mensal','Planos'],['financeiro','Financeiro'],['estoque','Estoque'],['links','Ajustes']]:[['painel','Painel'],['agenda','Minha agenda'],['mensal','Planos'],['financeiro','Meus ganhos']]}
 let view='painel', mode='admin', CV='agendar', CPLAN=null;
@@ -516,7 +517,7 @@ function route(){
 function nav(){
   const html=menu().map(([k,l])=>`<button data-a="go" data-v="${k}" ${view===k?'aria-current="page"':''}>${IC[k]}<span>${l}</span></button>`).join('');
   document.getElementById('nav').innerHTML=html; const tb=document.getElementById('tabbar');tb.innerHTML=html;tb.style.gridTemplateColumns=`repeat(${menu().length},1fr)`;
-  const me=user&&B(user);document.querySelectorAll('.who').forEach(el=>el.innerHTML=me?`<span>${esc(me.name)}${isDono()?' · dono':''}</span><button class="btn sm" data-a="my-pass">Trocar senha</button><button class="btn sm" data-a="logout">Sair</button>`:'');
+  const me=user&&B(user);document.querySelectorAll('.who').forEach(el=>el.innerHTML=me?`<span>${esc(me.name)}${isMaycao()?' · dono':isDono()?' · administrador':''}</span><button class="btn sm" data-a="my-pass">Trocar senha</button><button class="btn sm" data-a="logout">Sair</button>`:'');
   document.querySelectorAll('.only-dono').forEach(el=>el.hidden=!isDono());
   const is=document.getElementById('instSlot');if(is)is.innerHTML=installBtn();
 }
@@ -623,10 +624,11 @@ function teamModal(id){
   openM(mh(isNew?'Novo barbeiro':'Editar '+esc(b.name))+`<form id="tform" style="display:flex;flex-direction:column;gap:12px">
    <div class="fld"><label for="t_name">Nome</label><input id="t_name" required value="${esc(b?b.name:'')}" placeholder="Como aparece no site"></div>
    ${b&&b.id==='b1'?'':`<div class="fld"><label for="t_comm">Comissão sobre serviços (%)</label><input id="t_comm" type="number" min="0" max="100" value="${b?b.comm:45}"></div>`}
+   ${isMaycao()&&!(b&&b.id==='b1')?`<label style="display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer"><input type="checkbox" id="t_adm" ${b&&b.admin?'checked':''} style="margin-top:3px"><span><b>Administrador (sócio)</b><br><span class="sub" style="font-size:12.5px">Acesso a tudo, igual ao Maycão: preços, planos, financeiro, relatório e ajustes. Só o Maycão escolhe quem é administrador.</span></span></label>`:''}
    <div class="fld"><label>Cor na agenda</label><div class="colors">${COLORS.concat(b&&!COLORS.includes(b.color)?[b.color]:[]).map(c=>`<label class="sw-c" style="background:${c}"><input type="radio" name="t_col" value="${c}" ${c===col?'checked':''} aria-label="Cor ${c}"></label>`).join('')}</div></div>
    <p id="terr" style="color:var(--bad);margin:0;font-size:13.5px" hidden></p>
    <div class="btns" style="justify-content:flex-end"><button type="button" class="btn" data-a="close">Voltar</button><button class="btn pri" type="submit">${isNew?'Adicionar':'Salvar'}</button></div></form>
-   ${isNew?'<p class="sub" style="margin:0;font-size:13px">Ele entra com a senha 123 e cria a dele no primeiro acesso.</p>':`<div class="danger-zone"><div class="row" style="border:0;padding:0"><div class="grow"><div class="t">Senha</div><div class="s">${b.mustChange?'Está na senha padrão 123':'Senha pessoal criada'}</div></div><button class="btn sm" data-a="team-reset" data-id="${b.id}">Resetar para 123</button></div>
+   ${isNew?'<p class="sub" style="margin:0;font-size:13px">Ele entra com a senha 123 e cria a dele no primeiro acesso.</p>':(!isMaycao()&&(b.admin||b.id==='b1'))?'<p class="sub" style="margin:0;font-size:13px">Só o Maycão pode resetar a senha ou excluir um administrador.</p>':`<div class="danger-zone"><div class="row" style="border:0;padding:0"><div class="grow"><div class="t">Senha</div><div class="s">${b.mustChange?'Está na senha padrão 123':'Senha pessoal criada'}</div></div><button class="btn sm" data-a="team-reset" data-id="${b.id}">Resetar para 123</button></div>
    ${b.id==='b1'?'':`<div class="row"><div class="grow"><div class="t">Excluir da equipe</div><div class="s">${fut?`Tem ${fut} horário${fut>1?'s':''} marcado${fut>1?'s':''}`:'Some do site, da agenda e do login. O histórico fica no financeiro.'}</div></div><button class="btn sm danger" data-a="team-del" data-id="${b.id}">Excluir</button></div><div id="delconf"></div>`}</div>`}`);
   md.querySelector('#tform').addEventListener('submit',e=>{e.preventDefault();const err=md.querySelector('#terr');
     const name=md.querySelector('#t_name').value.trim();const ce=md.querySelector('#t_comm');const comm=ce?Math.max(0,Math.min(100,+ce.value||0)):0;const color=(md.querySelector('input[name=t_col]:checked')||{}).value||col;
@@ -634,8 +636,9 @@ function teamModal(id){
     if(ACT().some(x=>x.name.toLowerCase()===name.toLowerCase()&&x.id!==(b&&b.id))){err.textContent='Já tem um barbeiro com esse nome.';err.hidden=false;return}
     const base=name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'').slice(0,20)||'barbeiro';
     const mkSlug=()=>{let sl=base,i=2;while(S.barbers.some(x=>x.slug===sl&&x.id!==(b&&b.id)))sl=base+i++;return sl};
-    if(isNew){S.barbers.push({id:'b'+uid(),name,slug:mkSlug(),mustChange:true,color,comm});toast(name+' adicionado · senha 123')}
-    else{b.name=name;b.color=color;if(b.id!=='b1')b.comm=comm;toast('Dados de '+name+' salvos')}
+    const adm=md.querySelector('#t_adm');
+    if(isNew){const nb={id:'b'+uid(),name,slug:mkSlug(),mustChange:true,color,comm};if(adm&&adm.checked)nb.admin=true;S.barbers.push(nb);toast(name+' adicionado · senha 123'+(nb.admin?' · administrador':''))}
+    else{b.name=name;b.color=color;if(b.id!=='b1')b.comm=comm;if(adm){if(adm.checked)b.admin=true;else delete b.admin}toast('Dados de '+name+' salvos')}
     save();syncCfg();closeM();render();});
 }
 
@@ -643,7 +646,7 @@ function teamModal(id){
 function links(){
   const items=[{name:'Link geral (cliente escolhe o barbeiro)',token:'agendar'},...ACT().map(b=>({name:b.name,token:'agendar-'+b.slug,b}))];
   return head('Ajustes','Equipe, site e agendamento. O que muda aqui aparece na hora no site.')+`
-  <section class="panel"><div class="ph"><h2>Equipe</h2><button class="btn sm pri" data-a="team-new">+ Barbeiro</button></div><div class="list">${ACT().map(b=>`<div class="row"><span class="av" style="background:${b.color};color:#fff">${initials(b.name)}</span><div class="grow"><div class="t">${esc(b.name)}${b.id==='b1'?' <span class="sub" style="font-size:12px">· dono</span>':''}</div><div class="s">${b.id==='b1'?'Acesso total':'Comissão '+b.comm+'%'}${b.mustChange?' · <span style="color:var(--warn);font-weight:700">1º acesso pendente</span>':''}</div></div><div class="btns" style="flex-wrap:nowrap"><button class="btn sm" data-a="team-edit" data-id="${b.id}">Editar</button></div></div>`).join('')}</div>
+  <section class="panel"><div class="ph"><h2>Equipe</h2><button class="btn sm pri" data-a="team-new">+ Barbeiro</button></div><div class="list">${ACT().map(b=>`<div class="row"><span class="av" style="background:${b.color};color:#fff">${initials(b.name)}</span><div class="grow"><div class="t">${esc(b.name)}${b.id==='b1'?' <span class="sub" style="font-size:12px">· dono</span>':b.admin?' <span class="sub" style="font-size:12px;color:var(--gold,#A87622);font-weight:700">· administrador</span>':''}</div><div class="s">${b.id==='b1'?'Acesso total':'Comissão '+b.comm+'%'}${b.mustChange?' · <span style="color:var(--warn);font-weight:700">1º acesso pendente</span>':''}</div></div><div class="btns" style="flex-wrap:nowrap"><button class="btn sm" data-a="team-edit" data-id="${b.id}">Editar</button></div></div>`).join('')}</div>
   <p class="sub" style="margin:0;font-size:12.5px">Barbeiro novo entra com a senha 123 e cria a dele no primeiro acesso. Esqueceu? Em Editar, use Resetar senha.</p></section>
   <section class="panel"><div class="ph"><h2>Site da barbearia</h2><a class="btn sm pri" href="${SITE_URL}" target="_blank" rel="noopener">Ver o site</a></div><div class="row"><div class="av">🌐</div><div class="grow"><div class="t">Página inicial com preços, horários e agendamento</div><div class="s mono linktxt">${SITE_URL}</div></div><button class="btn sm" data-a="copy-link" data-t="site">Copiar</button></div></section>
   <section class="panel"><div class="ph"><h2>Horário de funcionamento</h2><button class="btn sm pri" data-a="hours-save">Salvar horários</button></div><div id="hrsform">${[1,2,3,4,5,6,0].map(d=>{const v=S.hours[d];return `<div class="hrow" data-d="${d}"><b>${DIAS[d].slice(0,3)}</b><label style="display:flex;gap:6px;align-items:center;font-size:13px"><input type="checkbox" class="hopen" ${v?'checked':''}> Abre</label><input type="time" class="ho" step="1800" value="${v?v[0]:'09:00'}" ${v?'':'disabled'} aria-label="Abre às"><input type="time" class="hc" step="1800" value="${v?v[1]:'18:00'}" ${v?'':'disabled'} aria-label="Fecha às"></div>`}).join('')}</div><p class="sub" style="margin:0;font-size:12.5px">${esc(hoursText())}</p></section>
@@ -791,7 +794,7 @@ function agendar(){
   const canBack=W.step>(W.lock?1:0);
   const back=canBack?'<button type="button" class="btn ghost" data-a="w-back">‹ Voltar</button>':'';
   let body='';
-  if(W.step===0) body=`<h2>Com quem você quer cortar?</h2><div class="opts">${ACT().map(b=>`<button class="opt" data-a="w-bar" data-id="${b.id}" aria-pressed="${W.barberId===b.id}"><span class="av" style="background:${b.color};color:#fff">${initials(b.name)}</span><b>${esc(b.name)}</b><small>${b.id==='b1'?'Dono da casa':'Barbeiro'}</small></button>`).join('')}<button class="opt" data-a="w-bar" data-id="any" aria-pressed="${W.barberId==='any'}"><span class="av">?</span><b>Tanto faz</b><small>Primeiro horário livre</small></button></div>`;
+  if(W.step===0) body=`<h2>Com quem você quer cortar?</h2><div class="opts">${ACT().map(b=>`<button class="opt" data-a="w-bar" data-id="${b.id}" aria-pressed="${W.barberId===b.id}"><span class="av" style="background:${b.color};color:#fff">${initials(b.name)}</span><b>${esc(b.name)}</b><small>${b.id==='b1'?'Dono da casa':b.admin?'Sócio · administrador':'Barbeiro'}</small></button>`).join('')}<button class="opt" data-a="w-bar" data-id="any" aria-pressed="${W.barberId==='any'}"><span class="av">?</span><b>Tanto faz</b><small>Primeiro horário livre</small></button></div>`;
   if(W.step===1) body=`${W.lock?`<div class="row" style="border:0;padding:0"><span class="av" style="background:${B(W.barberId).color};color:#fff">${initials(B(W.barberId).name)}</span><div class="grow"><div class="t">Agenda de ${esc(B(W.barberId).name)}</div><div class="s"><a href="#agendar">Prefiro outro barbeiro</a></div></div></div>`:''}<h2>Escolha o serviço</h2><div class="opts">${S.services.map(x=>`<button class="opt" data-a="w-svc" data-id="${x.id}" aria-pressed="${W.serviceId===x.id}"><b>${esc(x.name)}</b><span class="pr">${cplanoServico(x.id)?'<span style="color:var(--ok)">No plano</span>':brl(x.price)}</span><small>${x.dur} min</small></button>`).join('')}</div><div>${back}</div>`;
   if(W.step===2){
     const okDia=x=>!PLW||!Array.isArray(PLW.diasSemana)||!PLW.diasSemana.length||PLW.diasSemana.includes(new Date(x+'T12:00:00').getDay());
@@ -1208,7 +1211,7 @@ const CFG=window.MAYCAO_CONFIG||{};
 const SB=(window.supabase&&CFG.SUPABASE_URL&&/^https:\/\//.test(CFG.SUPABASE_URL)&&CFG.SUPABASE_ANON_KEY&&!/COLE/.test(CFG.SUPABASE_ANON_KEY))
   ?window.supabase.createClient(CFG.SUPABASE_URL,CFG.SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:true}}):null;
 const COLS=['appts','clients','tx','products','payouts','subs'];
-const PUBB=['id','name','slug','color','off'];
+const PUBB=['id','name','slug','color','off','admin'];
 let LOADERR='';
 const comTempo=(pr,ms)=>Promise.race([pr,new Promise((_,rj)=>setTimeout(()=>rj(new Error('tempo')),ms))]);
 const msgErro=e=>/tempo|fetch|network|Failed/i.test(String(e&&e.message||e))?'O servidor demorou para responder. Confira a internet e tente de novo.':'O servidor respondeu com erro: '+String(e&&e.message||e).slice(0,140);
@@ -1256,8 +1259,10 @@ async function flush(){
     for(const c in byCol){const {error}=await SB.from('registros').delete().eq('colecao',c).in('id',byCol[c]);if(error)throw error;byCol[c].forEach(id=>delete SNAP[c+'|'+id])}
     const ck=cfgKey();
     if(ck!==CFGSNAP&&isDono()&&donoPin){
-      const {data,error}=await SB.rpc('salvar_config',{p_pin_dono:donoPin,p_publica:pubCfg(),p_privada:privCfg()});if(error)throw error;
-      if(data===false){toast('A senha do Maycão não confere. Entre de novo.');user=null;setDonoPin(null);await loadCfg();render()}
+      let rs=await SB.rpc('salvar_config_adm',{p_barber:user,p_pin:donoPin,p_publica:pubCfg(),p_privada:privCfg()});
+      if(rs.error&&user==='b1'&&/salvar_config_adm|PGRST202|not find|does not exist/i.test(JSON.stringify(rs.error)))rs=await SB.rpc('salvar_config',{p_pin_dono:donoPin,p_publica:pubCfg(),p_privada:privCfg()});
+      const {data,error}=rs;if(error)throw error;
+      if(data===false){toast(user==='b1'?'A senha do Maycão não confere. Entre de novo.':'Sua senha não confere ou você não é mais administrador. Entre de novo.');user=null;setDonoPin(null);await loadCfg();render()}
       else{CFGSNAP=ck;const st=await SB.rpc('equipe_status');if(!st.error)applyCfg(pubCfg(),privCfg(),st.data)}
     }
     setOnline(true);
@@ -1556,7 +1561,7 @@ function apptModal(id){
 }
 function newApptModal(pre={}){
   const editing=pre.id?S.appts.find(x=>x.id===pre.id):null;
-  const v={clientId:editing?.clientId||pre.clientId||'',serviceId:editing?.serviceId||'s1',barberId:pre.barberId||editing?.barberId||(isDono()?'b1':user),date:pre.date||editing?.date||agDate,time:pre.time||editing?.time||''};
+  const v={clientId:editing?.clientId||pre.clientId||'',serviceId:editing?.serviceId||'s1',barberId:pre.barberId||editing?.barberId||user,date:pre.date||editing?.date||agDate,time:pre.time||editing?.time||''};
   if(v.date<TODAY)v.date=TODAY;
   const draw=()=>{
     const times=freeTimes(v.barberId,v.date,SV(v.serviceId).dur,editing?.id);
@@ -1641,7 +1646,7 @@ document.addEventListener('click',e=>{
     case 'exit-preview':preview=false;mode='admin';view='links';render();window.scrollTo({top:0});break;
     case 'team-new':if(isDono())teamModal();break;
     case 'team-edit':if(isDono())teamModal(id);break;
-    case 'team-reset':{const b=B(id);SB.rpc('resetar_pin',{p_pin_dono:donoPin,p_barber:b.id}).then(({data,error})=>{if(error||!data){toast(error?'Sem internet. Tente de novo.':'Não deu para resetar. Entre de novo como Maycão.');return}b.mustChange=true;cache();closeM();render();toast('Senha de '+b.name+' voltou para 123')});break}
+    case 'team-reset':{const b=B(id);SB.rpc('resetar_pin_adm',{p_barber:user,p_pin:donoPin,p_alvo:b.id}).then(rs=>(rs.error&&user==='b1'&&/resetar_pin_adm|PGRST202|not find|does not exist/i.test(JSON.stringify(rs.error)))?SB.rpc('resetar_pin',{p_pin_dono:donoPin,p_barber:b.id}):rs).then(({data,error})=>{if(error||!data){toast(error?'Sem internet. Tente de novo.':(b.admin&&!isMaycao()?'Só o Maycão reseta a senha de um administrador.':'Não deu para resetar. Entre de novo.'));return}b.mustChange=true;cache();closeM();render();toast('Senha de '+b.name+' voltou para 123')});break}
     case 'team-del':{const b=B(id);const fut=S.appts.filter(a=>a.barberId===b.id&&a.date>=TODAY&&(a.status==='agendado'||a.status==='confirmado'));const box=md.querySelector('#delconf');
       box.innerHTML=`<div class="msg" style="display:flex;flex-direction:column;gap:10px"><span>${fut.length?`${esc(b.name)} tem ${fut.length} horário${fut.length>1?'s':''} marcado${fut.length>1?'s':''}. Ao excluir, ${fut.length>1?'eles serão cancelados':'ele será cancelado'}. Avise os clientes ou remarque antes.`:`Excluir ${esc(b.name)} da equipe?`}</span><div class="btns"><button class="btn sm danger" data-a="team-del-ok" data-id="${b.id}">Sim, excluir</button><button class="btn sm" data-a="close">Cancelar</button></div></div>`;break}
     case 'team-del-ok':{const b=B(id);S.appts.filter(a=>a.barberId===b.id&&a.date>=TODAY&&(a.status==='agendado'||a.status==='confirmado')).forEach(a=>{a.status='cancelado';syncAppt(a)});b.off=true;save();syncCfg();closeM();render();toast(b.name+' saiu da equipe');break}
@@ -1722,7 +1727,7 @@ document.addEventListener('submit',e=>{
     SB.rpc('entrar_pin',{p_barber:loginB,p_pin:pin}).then(({data,error})=>{bt.disabled=false;
       if(error||data==='errado'||data==='bloqueado'){le.textContent=error?'Sem internet. Tente de novo.':data==='bloqueado'?'Muitas tentativas erradas. Espere 10 minutos.':'PIN errado. Tente de novo.';le.hidden=false;document.getElementById('pin').value='';return}
       user=loginB;try{sessionStorage.setItem(SKP+'user',user)}catch(err){}
-      if(user==='b1')setDonoPin(pin);
+      if(isDono())setDonoPin(pin);
       if(data==='trocar'){tempPin=pin;B(user).mustChange=true}else{B(user).mustChange=false}
       view='painel';render();if(data!=='trocar')toast('Bem-vindo, '+B(user).name)});return}
   if(e.target.id==='cform'){e.preventDefault();const er=document.getElementById('cerr'),bt=document.getElementById('csend');const fail=t=>{er.textContent=t;er.hidden=false;bt.disabled=false};
